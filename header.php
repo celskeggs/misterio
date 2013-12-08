@@ -7,6 +7,7 @@
   <body>
 <?php
 if (isset($_GET['msg'])) {
-	echo "<div id='msg'>" . htmlentities($_GET['msg']) . "</div>";
+	$hide = "http://" . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'];
+	echo "<div id='msg'>" . htmlentities($_GET['msg']) . " <a href='$hide'>[X]</a></div>";
 }
 ?>

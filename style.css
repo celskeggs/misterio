@@ -1,15 +1,74 @@
+.profesor-label {
+	margin-top: 5px;
+	margin-left: auto;
+	margin-right: auto;
+	background-color: #5555FF;
+	width: 1060px;
+	border-radius: 5px;
+	text-align: center;
+	font-size: 50px;
+}
 #title {
+	border-radius: 10px;
 	position: absolute;
-	top: 10px; height: 30px;
+	width: 1080px;
+	margin: auto;
 	left: 10px; right: 10px;
 	background-color: #7777FF;
 	text-align: center;
 	font-size: 25px;
 }
-#content {
+#msg {
 	position: absolute;
+	border: 1px solid #ffffff;
+	border-radius: 6px;
+	text-align: center;
+	width: 600px;
+	margin: auto;
+	left: 10px; right: 10px;
+	background-color: #000000;
+	color: white;
+	top: 50%;
+	z-index: 1;
+	-moz-box-shadow:    0 0 10px 10px #000;
+	-webkit-box-shadow: 0 0 10px 10px #000;
+	box-shadow:         0 0 10px 10px #000;
+}
+#posts {
+	position: absolute;
+	left: 90px; right: 15px;
+}
+.post {
+	list-style-type: none;
+	min-height: 115px;
+	background-color: #5555FF;
+	border-radius: 10px;
+}
+.avatar {
+	position: absolute;
+	background-color: #4444FF;
+	left: -75px; top: 5px; bottom: 5px;
+	width: 100px;
+	height: 100px;
+}
+.author {
+	position: relative;
+	top: 5px;
+	left: 30px;
+	font-weight: bold;
+}
+.body {
+	position: relative;
+	top: 10px;
+	left: 5px;
+}
+#content {
+	border-radius: 10px;
+	position: absolute;
+	width: 1080px;
+	margin: auto;
 	left: 15px; right: 15px;
-	bottom: 100px;
+	bottom: 25px;
 	top: 50px;
 	background-color: #7777FF;
 }
@@ -21,4 +80,23 @@ body {
 	bottom: 0px;
 	right: 0px;
 	color: white;
+}
+#table-users td {
+	border-radius: 5px;
+}
+#table-users {
+	border-radius: 5px;
+	position: static;
+	margin-top: 10px;
+	margin-left: 10px;
+	width: 1060px;
+	text-align: center;
+}
+#table-users input {
+	width: 90%;
+	margin-left: 5px;
+	background-color: #000055;
+	color: white;
+	text-align: center;
+	border: 1px solid white;
 }
