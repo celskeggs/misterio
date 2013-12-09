@@ -68,13 +68,13 @@ DELETE remove-user.php?uid=x
   Response:
     {}
 	
-  ===== TODO =====
+  DONE
 
 DELETE remove-message.php?id=x
   Response:
     {}
 	
-  ===== TODO =====
+  DONE
 
 Headers:
   X-Session: <token>

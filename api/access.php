@@ -1,9 +1,9 @@
 <?php
 $config_base_url = "http://cgscomwww.catlin.edu/spanish/misterio/token.php?token=";
 
-function die_error(code, message) {
-	http_response_code(code);
-	echo json_encode(array('message' => message));
+function die_error($code, $message) {
+	http_response_code($code);
+	echo json_encode(array('message' => $message));
 	die();
 }
 if (!isset($req_admin) || ($req_admin !== TRUE || $req_admin !== FALSE)) {
