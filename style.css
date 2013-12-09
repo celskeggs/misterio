@@ -4,19 +4,9 @@
 	margin-right: auto;
 	background-color: #5555FF;
 	width: 1060px;
-	border-radius: 5px;
+	border-radius: 6px;
 	text-align: center;
 	font-size: 50px;
-}
-#title {
-	border-radius: 10px;
-	position: absolute;
-	width: 1080px;
-	margin: auto;
-	left: 10px; right: 10px;
-	background-color: #7777FF;
-	text-align: center;
-	font-size: 25px;
 }
 #msg {
 	position: absolute;
@@ -38,32 +28,71 @@
 	position: absolute;
 	left: 90px; right: 15px;
 }
+#noposts {
+	margin-top: 10px;
+	background-color: #FFF;
+	border-radius: 6px;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	padding-left: 8px;
+}
 .post {
 	list-style-type: none;
 	min-height: 115px;
-	background-color: #5555FF;
-	border-radius: 10px;
+	background-color: #FFF;
+	border-radius: 6px;
+	margin-bottom: 10px;
+	padding-bottom: -10px;
+}
+#editpost {
+	resize: vertical;
+	width: 100%;
+	min-height: 80px;
+	margin-bottom: 5px;
+}
+.new-post {
+	min-height: 0;
 }
 .avatar {
-	position: absolute;
+	border-radius: 6px;
+	position: relative;
+	margin-bottom: -120px;
 	background-color: #4444FF;
-	left: -75px; top: 5px; bottom: 5px;
+	top: -30px;
+	left: -110px;
 	width: 100px;
 	height: 100px;
 }
+.contents {
+	position: relative;
+}
 .author {
 	position: relative;
-	top: 5px;
+	top: -10px;
 	left: 30px;
 	font-weight: bold;
 }
 .body {
+	margin-left: 5px;
+	margin-top: -5px;
+	margin-right: 10px;
 	position: relative;
-	top: 10px;
-	left: 5px;
+/*	position: relative;
+	top: -5px;
+	left: 5px;*/
+}
+#title {
+	border-radius: 6px;
+	position: absolute;
+	width: 1080px;
+	margin: auto;
+	left: 15px; right: 15px;
+	background-color: #7777FF;
+	text-align: center;
+	font-size: 25px;
 }
 #content {
-	border-radius: 10px;
+	border-radius: 6px;
 	position: absolute;
 	width: 1080px;
 	margin: auto;
@@ -74,6 +103,7 @@
 }
 body {
 	background-color: black;
+	font-family: verdana, sans-serif;
 }
 #footer {
 	position: absolute;
@@ -82,10 +112,10 @@ body {
 	color: white;
 }
 #table-users td {
-	border-radius: 5px;
+	border-radius: 6px;
 }
 #table-users {
-	border-radius: 5px;
+	border-radius: 6px;
 	position: static;
 	margin-top: 10px;
 	margin-left: 10px;

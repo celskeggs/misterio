@@ -3,7 +3,7 @@ error_reporting(E_ALL);
 ini_set("display_errors", "stdout");
 $req_access = 1;
 require('begin.php');
-$pqry = $db->prepare("SELECT `IsPublic`,`Date`,`Contents`,`Name`,`Avatar` FROM `Posts`,`Players` WHERE `Author`=`Players`.`UID` AND (`IsPublic` = 1 OR `Author`=?) ORDER BY `Date` ASC");
+$pqry = $db->prepare("SELECT `IsPublic`,`Date`,`Contents`,`Name`,`Avatar` FROM `Posts`,`Players` WHERE `Author`=`Players`.`UID` AND (`IsPublic` = 1 OR `Author`=?) ORDER BY `Date` DESC");
 $pqry->bind_param("i", $userid);
 $pqry->execute();
 $pqry->bind_result($qry_ispublic, $qry_date, $qry_contents, $qry_author, $qry_avatar);
@@ -26,11 +26,14 @@ require('header.php');
     </div>
     <div id="content">
 <?php
-if (count($posts) <= 0) {
+if (count($posts) > 0) {
 ?>
-    <div id="noposts">No han nada postes</div>
+    <ul id="posts">
+    <li class="post new-post">
+      <img class="avatar" src="<?php echo $useravatar; ?>" alt="Avatar" />
+      <div class="contents"><div class="author"><?php echo htmlentities($username); ?></div><div class="body"><textarea id="editpost"> </textarea></div></div>
+    </li>
 <?php
-} else {
 	foreach ($posts as $post) {
 		$postclasses = array("post");
 		$ispublic = $post[0];
@@ -42,16 +45,15 @@ if (count($posts) <= 0) {
 		$author = $post[3];
 		$avatar = str_replace("'", urlencode("'"), str_replace('"', urlencode('"'), $post[4]));
 ?>
-    <ul id="posts">
     <li class="<?php echo implode(' ', $postclasses); ?>">
       <img class="avatar" src="<?php echo $avatar; ?>" alt="Avatar" />
- <!--     <div class="avatar">INSERT AVATAR</div> -->
-      <div class="contents"><div class="author"><?php echo htmlentities($author); ?></div><div class="body"><?php echo htmlentities($contents); ?><br>A<br>B<br>C<br>D</div><br></div>
-    </div>
+      <div class="contents"><div class="author"><?php echo htmlentities($author); ?></div><div class="body"><?php echo htmlentities($contents); ?></div></div>
+    </li>
 <?php
 	}
 }
 ?>
+    <div id="noposts">No hay m&aacute;s postes</div>
     </ul>
     </div>
 <?php

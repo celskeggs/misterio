@@ -12,16 +12,18 @@ $admin_access = false;
 $userid = 0;
 $username = "Sr. An'onimo";
 $useremail = null;
+$useravatar = "placeholder.png";
 if (isset($_SESSION["token"])) {
-	$qry = $db->prepare("SELECT `UID`, `Name`, `Email`, `Admin` FROM `Players` WHERE `Token`=?");
+	$qry = $db->prepare("SELECT `UID`, `Name`, `Email`, `Admin`, `Avatar` FROM `Players` WHERE `Token`=?");
 	$qry->bind_param("s", $_SESSION["token"]);
 	$qry->execute();
-	$qry->bind_result($qry_uid, $qry_name, $qry_email, $qry_admin);
+	$qry->bind_result($qry_uid, $qry_name, $qry_email, $qry_admin, $qry_avatar);
 	if ($qry->fetch()) {
 		$access = true;
 		$userid = $qry_uid;
 		$username = $qry_name;
 		$useremail = $qry_email;
+		$useravatar = $qry_avatar;
 		if ($qry_admin) {
 			$admin_access = true;
 		}

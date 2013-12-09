@@ -11,21 +11,22 @@ if (isset($_GET['mod'])) {
 	$mod_msg = "Unknown Operation: $mod_op";
 	if ($mod_op === "user") {
 		if (isset($_POST['uid']) && isset($_POST['name']) && isset($_POST['email'])
-                 && $_POST['uid'] !== "" && $_POST['name'] !== "") {
+                 && $_POST['uid'] !== "" && $_POST['name'] !== "" && isset($_POST['avatar']) && $_POST['avatar'] !== "") {
 			$uid = intval($_POST['uid']);
 			$name = $_POST['name'];
 			$email = $_POST['email'];
 			$admin = (isset($_POST['admin']) && $_POST['admin'] === "on") ? 1 : 0;
-			$qry = $db->prepare("SELECT `Name`, `Email`, `Admin` FROM `Players` WHERE `UID`=?");
+			$avatar = $_POST['avatar'];
+			$qry = $db->prepare("SELECT `Name`, `Email`, `Admin`, `Avatar` FROM `Players` WHERE `UID`=?");
 			$qry->bind_param("i", $uid);
 			$qry->execute();
-			$qry->bind_result($query_name, $q_email, $query_admin);
+			$qry->bind_result($query_name, $q_email, $query_admin, $query_avatar);
 			if (!$qry->fetch()) {
 				$mod_msg = "No such user!";
 				$qry->close();
 			} else {
 				$query_email = ($q_email === null) ? "" : $q_email;
-				if ($email === $query_email && $name === $query_name && $admin === $query_admin) {
+				if ($email === $query_email && $name === $query_name && $admin === $query_admin && $avatar == $query_avatar) {
 					$mod_msg = "No modification.";
 					$qry->close();
 				} else {
@@ -59,14 +60,14 @@ if (isset($_GET['mod'])) {
 						}
 					}
 					if ($email === "") {
-						$mqry = $db->prepare("UPDATE `Players` SET `Name`=?, `Token`=NULL, `Email`=NULL, `Admin`=? WHERE `UID`=?");
-						$mqry->bind_param("sii", $name, $admin, $uid);
+						$mqry = $db->prepare("UPDATE `Players` SET `Name`=?, `Token`=NULL, `Email`=NULL, `Admin`=?, `Avatar`=? WHERE `UID`=?");
+						$mqry->bind_param("sisi", $name, $admin, $avatar, $uid);
 					} else if ($qtok !== "") {
-						$mqry = $db->prepare("UPDATE `Players` SET `Name`=?, `Token`=?, `Email`=?, `Admin`=? WHERE `UID`=?");
-						$mqry->bind_param("sssii", $name, $qtok, $email, $admin, $uid);
+						$mqry = $db->prepare("UPDATE `Players` SET `Name`=?, `Token`=?, `Email`=?, `Admin`=?, `Avatar`=? WHERE `UID`=?");
+						$mqry->bind_param("sssisi", $name, $qtok, $email, $admin, $avatar, $uid);
 					} else {
-						$mqry = $db->prepare("UPDATE `Players` SET `Name`=?, `Email`=?, `Admin`=? WHERE `UID`=?");
-						$mqry->bind_param("ssii", $name, $email, $admin, $uid);
+						$mqry = $db->prepare("UPDATE `Players` SET `Name`=?, `Email`=?, `Admin`=?, `Avatar`=? WHERE `UID`=?");
+						$mqry->bind_param("ssisi", $name, $email, $admin, $avatar, $uid);
 					}
 					$mqry->execute();
 					$mqry->close();
