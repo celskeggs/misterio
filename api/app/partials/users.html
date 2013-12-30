@@ -1,0 +1,56 @@
+<h1>Users<button type="button" class="btn btn-success pull-right" ng-click="add()" ng-if="access()">+ Add User</button></h1>
+
+<p>{{count()}}</p>
+
+<form name="EditForm" ng-submit="save()">
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>UID</th>
+        <th>Name</th>
+        <th ng-if="access()">Email</th>
+        <th>Avatar</th>
+        <th ng-if="access()">Access</th>
+        <th ng-if="access()" colspan="2">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="user in User.others">
+        <td><a ng-href="/users/{{user.uid}}">{{user.uid}}</a></td>
+        <td ng-hide="state.editing === $index">{{user.name}}</td>
+        <td ng-hide="state.editing === $index" ng-if="access()">{{user.email}}</td>
+        <td ng-hide="state.editing === $index">{{user.avatar}}</td>
+        <td ng-hide="state.editing === $index" ng-if="access()">{{ternary(user.access, 'Admin', 'User')}}</td>
+        <td ng-if="access() &amp;&amp; state.editing === $index">
+          <input type="text" class="form-control" ng-model="editUser.name" required>
+        </td>
+        <td ng-if="access() &amp;&amp; state.editing === $index">
+          <input type="email" class="form-control" ng-model="editUser.email">
+        </td>
+        <td ng-if="access() &amp;&amp; state.editing === $index">
+          <input type="text" class="form-control" ng-model="editUser.avatar" required>
+        </td>
+        <td ng-if="access() &amp;&amp; state.editing === $index">
+          <input type="checkbox" ng-model="editUser.access">
+        </td>
+        <td ng-if="access()" class="action-cell">
+          <button ng-disabled="disabled($index)" ng-hide="state.editing === $index" type="button" class="btn btn-success" ng-click="edit($index)">Edit</button>
+          <button ng-disabled="disabled($index, true)" ng-hide="state.editing === $index" type="button" class="btn btn-danger" ng-click="delete($index)">Delete</button>
+          <button ng-if="state.editing === $index" type="submit" class="btn btn-primary" ng-disabled="EditForm.$invalid">Save</button>
+          <button ng-if="state.editing === $index" type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
+        </td>
+      </tr>
+      <tr ng-if="access() &amp;&amp; state.adding">
+        <td></td>
+        <td><input type="text" focus-me="true" class="form-control" ng-model="editUser.name" required></td>
+        <td><input type="email" class="form-control" ng-model="editUser.email"></td>
+        <td><input type="text" class="form-control" ng-model="editUser.avatar" required></td>
+        <td><input type="checkbox" ng-model="editUser.access"></td>
+        <td class="action-cell">
+          <button type="submit" class="btn btn-primary" ng-disabled="EditForm.$invalid">Save</button>
+          <button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</form>

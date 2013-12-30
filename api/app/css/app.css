@@ -1,0 +1,44 @@
+/* app css stylesheet */
+
+body {
+  padding-top: 70px;
+}
+
+.main-content {
+  padding: 0 15px;
+}
+
+h1:first-child,
+h2:first-child,
+h3:first-child,
+h4:first-child,
+h5:first-child,
+h6:first-child {
+  margin-top: 0;
+}
+
+[ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+  display: none !important;
+}
+
+.nav .badge {
+  background-color: #d2322d;
+}
+
+.user-avatar {
+  width: 64px;
+  height: 64px;
+}
+
+a {
+  cursor: pointer;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.action-cell {
+  white-space: nowrap;
+  width: 1px;
+}
