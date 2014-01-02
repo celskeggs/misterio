@@ -5,19 +5,99 @@ var app = angular.module('misterio.controllers', []);
 
 app.controller('Feed', ['$scope', '$location', 'User',
     function Feed($scope, $location, User) {
+  $scope.user = function(id) {
+    return User.userLookup[id];
+  };
 
+  $scope.total = 0;
+  $scope.offset = 0;
+  $scope.limit = 10;
+  $scope.get = function() {
+    $scope.messages = [];
+    User.messages.all($scope.offset, $scope.limit)
+      .then(function(data) {
+      $scope.messages = data.data;
+      $scope.total = data.total;
+    });
+  };
+
+  $scope.canNext = function() {
+    return $scope.offset + $scope.limit < $scope.total;
+  };
+  $scope.canPrev = function() {
+    return $scope.offset !== 0;
+  };
+
+  $scope.next = function() {
+    if ($scope.canNext()) {
+      $scope.offset += $scope.limit;
+      $scope.get();
+    }
+  };
+  $scope.prev = function() {
+    if ($scope.canPrev()) {
+      if ($scope.offset < $scope.limit) {
+        $scope.offset = 0;
+      } else {
+        $scope.offset -= $scope.limit;
+      }
+      $scope.get();
+    }
+  };
+
+  $scope.get();
 }]);
 
 app.controller('Inbox', ['$scope', '$location', 'User',
     function Inbox($scope, $location, User) {
+  $scope.user = function(id) {
+    return User.userLookup[id];
+  };
 
+  $scope.total = 0;
+  $scope.offset = 0;
+  $scope.limit = 10;
+  $scope.get = function() {
+    $scope.messages = [];
+    User.messages.inbox($scope.offset, $scope.limit)
+      .then(function(data) {
+      $scope.messages = data.data;
+      $scope.total = data.total;
+    });
+  };
+
+  $scope.canNext = function() {
+    return $scope.offset + $scope.limit < $scope.total;
+  };
+  $scope.canPrev = function() {
+    return $scope.offset !== 0;
+  };
+
+  $scope.next = function() {
+    if ($scope.canNext()) {
+      $scope.offset += $scope.limit;
+      $scope.get();
+    }
+  };
+  $scope.prev = function() {
+    if ($scope.canPrev()) {
+      if ($scope.offset < $scope.limit) {
+        $scope.offset = 0;
+      } else {
+        $scope.offset -= $scope.limit;
+      }
+      $scope.get();
+    }
+  };
+
+  $scope.get();
 }]);
 
 app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Storage',
     function Compose($scope, $location, $routeParams, User, Storage) {
   $scope.dirty = 2;
   $scope.message = Storage.get('compose') || ($scope.dirty = 0, $scope.message = {
-    public: true
+    public: true, to: ""
   });
   $scope.$watchCollection('message', _.throttle(function(value) {
     Storage.set('compose', value);
@@ -46,7 +126,7 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
 
   $scope.reset = function() {
     $scope.message = {
-      public: true
+      public: true, to: ""
     };
     $scope.dirty = 0;
     $scope.SendForm.$setPristine();
@@ -57,9 +137,9 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
     User.messages.send({
       title: msg.title,
       data: msg.data,
-      to: msg.to.split(TO_SPLIT),
+      to: msg.to.split(TO_SPLIT).map(parseInt).filter(function (e) {return !isNaN(e);}),
       public: msg.public,
-      prev: msg.prev
+      prev: parseInt(msg.prev)
     }).then(function(data) {
       $scope.$emit('flash', 'info', 'Sent!', 'Your message has been sent!', {dismissable: true});
     });
@@ -97,7 +177,7 @@ app.controller('Users', ['$scope', '$location', 'User',
 
   $scope.add = function() {
     $scope.state.adding = true;
-    $scope.editUser = {};
+    $scope.editUser = {'access': false, 'email': null};
   };
 
   $scope.edit = function(index) {

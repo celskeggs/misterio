@@ -23,7 +23,7 @@ $post_date_timestamp = time();
 $post_date = date('Y-m-d H:i:s', $post_date_timestamp);
 // author, ispublic, data, title, prev
 $qry = $db->prepare("INSERT INTO `Posts` (`Author`, `IsPublic`, `Date`, `Contents`, `Title`, `ResponseTo`) VALUES (?, ?, ?, ?, ?, ?)");
-if ($qry === FALSE || !$qry->bind_param("iii", $user_uid, $post_is_public, $post_date, $post_data, $post_title, $post_prev) || !$qry->execute() || !$qry->close()) {
+if ($qry === FALSE || !$qry->bind_param("iisssi", $user_uid, $post_is_public, $post_date, $post_data, $post_title, $post_prev) || !$qry->execute() || !$qry->close()) {
 	die_error(500, "Server Error: Could not submit body query.");
 }
 $post_id = $db->insert_id;

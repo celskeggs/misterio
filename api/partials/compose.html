@@ -1,7 +1,7 @@
 <div ng-if="message.prev">
   <div ng-show="prev" class="media">
     <a class="pull-left" href="/users/{{prev.from}}">
-      <img class="media-object user-avatar" ng-src="avatar.php?uid={{prev.from}}" alt="{{user(prev.from).name}}">
+      <img class="media-object user-avatar" ng-src="{{'./img/' + user(prev.from).avatar}}" alt="{{user(prev.from).name}}">
     </a>
     <div class="media-body">
       <h4>{{prev.title}} <small ng-if="prev.to &amp;&amp; prev.to.length">&rarr; <span ng-repeat="target in prev.to">{{user(target).name}}</span></small> <span class="label label-default pull-right">{{prev.date | date:'short'}}</span></h4>

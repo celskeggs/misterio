@@ -204,7 +204,7 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
         });
       },
       all: function() {
-        return use($http.get('users.php', config()), function(data) {
+        return use($http.get('get-users.php', config()), function(data) {
           var others = data.data, uid = data.uid;
           User.others.length = 0;
           User.others.push.apply(User.others, others);

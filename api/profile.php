@@ -80,7 +80,7 @@ while ($qry->fetch()) {
 	if ($query_recipient !== null) {
 		$recip[] = $query_recipient;
 	}
-	$post = array('id' => $query_uid, 'public' => $query_ispublic ? true : false, 'title' => $query_title, 'data' => $query_data, 'from' => $query_author, 'prev' => $query_responseto, 'date': strtotime($query_date) * 1000, 'to' => $recip);
+	$post = array('id' => $query_uid, 'public' => $query_ispublic ? true : false, 'title' => $query_title, 'data' => $query_data, 'from' => $query_author, 'prev' => $query_responseto, 'date' => strtotime($query_date) * 1000, 'to' => $recip);
 	$posts[] = $post;
 	$uids[] = $query_uid;
 }

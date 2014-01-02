@@ -14,13 +14,25 @@ if (!$is_inbox && $_GET['scope'] != "all") {
 $posts_offset = intval($_GET['offset']);
 $posts_limit = intval($_GET['limit']);
 if ($is_inbox) {
-	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts`,`PostRecipients` WHERE `PostID`=`UID` AND `RecipientID`=? AND `RecipientID`=? AND `UID` NOT IN (SELECT `ResponseTo` FROM `Posts` WHERE `ResponseTo` IS NOT NULL GROUP BY `ResponseTo`) GROUP BY `PostID` ORDER BY `Date` LIMIT ?, ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` )";
+	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts`,`PostRecipients` WHERE `PostID`=`UID` AND `RecipientID`=? AND `RecipientID`=? AND `UID` NOT IN (SELECT `ResponseTo` FROM `Posts` WHERE `ResponseTo` IS NOT NULL GROUP BY `ResponseTo`) GROUP BY `PostID` ORDER BY `Date` DESC LIMIT ?, ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` )";
+	$query_count_text = "SELECT COUNT(`UID`) FROM `Posts`,`PostRecipients` WHERE `PostID`=`UID` AND `RecipientID`=? AND `RecipientID`=? AND `UID` NOT IN (SELECT `ResponseTo` FROM `Posts` WHERE `ResponseTo` IS NOT NULL GROUP BY `ResponseTo`)";
+	// TODO: Check that query!
 	// RecipientID clause duplicated so that I can use the same parameter binding for all three queries
 } else if ($user_admin) { // Show all posts to the administrator
-	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` WHERE ? = ? GROUP BY `UID` ORDER BY `Date` LIMIT ?, ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` )";
+	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` WHERE ? = ? GROUP BY `UID` ORDER BY `Date` DESC LIMIT ?, ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` )";
+	$query_count_text = "SELECT COUNT(`UID`) FROM `Posts` WHERE ? = ?";
 	// ? = ? clause added so that I can use the same parameter binding for all three queries
 } else {
-	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON ( `PostID` = `UID` ) WHERE ( `IsPublic` = 1 OR `Author` = ? OR `RecipientID` = ? ) GROUP BY `UID` ORDER BY `Date` LIMIT ? , ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` )";
+	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON ( `PostID` = `UID` ) WHERE ( `IsPublic` = 1 OR `Author` = ? OR `RecipientID` = ? ) GROUP BY `UID` ORDER BY `Date` DESC LIMIT ? , ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` )";
+	$query_count_text = "SELECT COUNT(`UID`) FROM (SELECT DISTINCT `UID` FROM `Posts` LEFT JOIN `PostRecipients` ON ( `PostID` = `UID` ) WHERE ( `IsPublic` = 1 OR `Author` = ? OR `RecipientID` = ? )) as `Main`";
+}
+$qry_count = $db->prepare($query_count_text);
+if ($qry_count === FALSE || !$qry_count->bind_param("ii", $user_uid, $user_uid) || !$qry_count->execute() || !$qry_count->bind_result($query_count_count) || !$qry_count->fetch()) {
+	die_error(500, "Server Error: Could not submit count query.");
+}
+$post_total = $query_count_count;
+if (!$qry_count->close()) {
+	die_error(500, "Server Error: Could not finish count query.");
 }
 $qry = $db->prepare($query_input_text);
 if ($qry === FALSE || !$qry->bind_param("iiii", $user_uid, $user_uid, $posts_offset, $posts_limit) || !$qry->execute() || !$qry->bind_result($query_uid, $query_ispublic, $query_title, $query_data, $query_author, $query_responseto, $query_date, $query_recipient)) {
@@ -49,4 +61,4 @@ while ($qry->fetch()) {
 if (!$qry->close()) {
 	die_error(500, "Server Error: Could not finish body query.");
 }
-echo json_encode(array('uid' => $user_uid, 'access' => $user_admin ? true : false, 'data' => $posts));
+echo json_encode(array('data' => $posts, 'total' => $post_total));

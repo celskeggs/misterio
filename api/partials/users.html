@@ -16,7 +16,7 @@
     </thead>
     <tbody>
       <tr ng-repeat="user in User.others">
-        <td><a ng-href="/users/{{user.uid}}">{{user.uid}}</a></td>
+        <td><a ng-href="./users/{{user.uid}}">{{user.uid}}</a></td>
         <td ng-hide="state.editing === $index">{{user.name}}</td>
         <td ng-hide="state.editing === $index" ng-if="access()">{{user.email}}</td>
         <td ng-hide="state.editing === $index">{{user.avatar}}</td>
