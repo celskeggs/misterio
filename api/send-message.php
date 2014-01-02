@@ -2,6 +2,7 @@
 $req_admin = FALSE;
 $get_json = TRUE;
 require("access.php");
+set_json();
 if (!is_array($json_data) || !isset($json_data['public']) || !isset($json_data['title']) || !isset($json_data['data']) || !isset($json_data['to'])) {
 	die_error(400, "Bad JSON - must be an object with public, title, data, and to.");
 }

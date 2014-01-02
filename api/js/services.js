@@ -63,7 +63,7 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
   }
   function headers() {
     return {
-      'x-session': User.user.session
+      'X-Session': User.user.session
     };
   }
   function use(req, manipulate) {

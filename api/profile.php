@@ -2,6 +2,7 @@
 $req_admin = FALSE;
 $get_json = FALSE;
 require("access.php");
+set_json();
 if (!isset($_GET['offset']) || !isset($_GET['limit']) || !isset($_GET['uid']) || !isset($_GET['type'])) {
 	die_error(400, "Should have offset, limit, uid, AND type!");
 }

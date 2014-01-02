@@ -2,6 +2,7 @@
 $req_admin = TRUE;
 $get_json = FALSE;
 require("access.php");
+set_json();
 if (!isset($_GET['uid'])) {
 	die_error(400, "Should have id!");
 }

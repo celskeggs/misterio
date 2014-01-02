@@ -2,7 +2,7 @@
 <html lang="en" ng-app="misterio">
 <head>
   <meta charset="utf-8">
-  <base href="/spanish/misterio/app/">
+  <base href="/spanish/misterio/">
   <title ng-bind="page.fullTitle()">Un Misterio en Cusco</title>
   <link rel="stylesheet" href="css/bootstrap.min.css">
   <link rel="stylesheet" href="css/app.css">
@@ -21,9 +21,9 @@
       </div>
       <div class="collapse navbar-collapse" ng-controller="Navbar">
         <ul class="nav navbar-nav">
-          <li><a nav-link href="/">Feed</a></li>
-          <li><a nav-link href="/users">Users</a></li>
-          <li><a nav-link href="/inbox">Inbox <span ng-cloak ng-if="unread()" class="badge">{{unread()}}</span></a></li>
+          <li><a href="./">Feed</a></li>
+          <li><a href="./users">Users</a></li>
+          <li><a href="./inbox">Inbox <span ng-cloak ng-if="unread()" class="badge">{{unread()}}</span></a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right" ng-cloak ng-if="User.user.session">
           <li><button class="btn btn-default navbar-btn" ng-click="logout()">Sign Out</button></li>

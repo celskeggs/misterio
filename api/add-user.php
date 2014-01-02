@@ -2,6 +2,7 @@
 $req_admin = TRUE;
 $get_json = TRUE;
 require("access.php");
+set_json();
 if (!is_array($json_data) || !isset($json_data['name']) || !isset($json_data['email']) || !isset($json_data['access']) || !isset($json_data['avatar'])) {
 	die_error(400, "Bad JSON - must be an object with name, email, access, and avatar.");
 }
