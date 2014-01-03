@@ -39,8 +39,10 @@ app.config(['$locationProvider', function($locationProvider) {
 }]);
 
 app.run(function($rootScope, $location, User) {
+  $rootScope.city = "Toluca";
+
   $rootScope.page = {
-    title: 'Un Misterio en Cuzco',
+    title: 'Un Misterio en ' + $rootScope.city,
     fullTitle: function() {
       var ctx = $rootScope.page.context;
       return $rootScope.page.title + (ctx ? ' - ' + ctx : '');

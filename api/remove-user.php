@@ -23,6 +23,6 @@ if ($qry === FALSE || !$qry->bind_param("i", $target_id) || !$qry->execute() || 
 	die_error(500, "Server Error: Could not submit body query.");
 }
 if ($old_email !== NULL && $old_email !== "") {
-	mail($old_email, "Tu cuenta del Misterio en Cuzco es borrada", "Tu cuenta del Misterio en Cuzco es borrada ahora.\n");
+	mail($old_email, "Tu cuenta del Misterio en $City es borrada", "Tu cuenta del Misterio en $City es borrada ahora.\n");
 }
 echo json_encode(array());
