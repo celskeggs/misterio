@@ -1,8 +1,6 @@
-
 <ul class="pager">
-  <li ng-class="canNext() ? '' : 'disabled'" class="previous"><a href="#" ng-click="next()">&larr; Older</a></li>
-  <li><a href="./compose">Redactar</a></li>
-  <li ng-class="canPrev() ? '' : 'disabled'" class="next"><a href="#" ng-click="prev()">Newer &rarr;</a></li>
+  <li ng-class="canNext() ? '' : 'disabled'" class="previous"><a href="#" ng-click="next()">&larr; Menos reciente</a></li>
+  <li ng-class="canPrev() ? '' : 'disabled'" class="next"><a href="#" ng-click="prev()">M&aacute;s reciente &rarr;</a></li>
 </ul>
 
 <div class="panel panel-default">
@@ -13,7 +11,7 @@
           <img class="media-object user-avatar" src="{{'./img/' + user(msg.from).avatar}}" alt="{{user(msg.from).name}}">
         </a>
         <div class="media-body">
-          <h4>{{msg.title}} <small ng-if="msg.to &amp;&amp; msg.to.length">&rarr; <span ng-repeat="target in msg.to">{{user(target).name}}</span></small> <span class="label label-default pull-right">{{msg.date | date:'short'}}</span></h4>
+          <h4>{{msg.title}} <small ng-if="msg.to &amp;&amp; msg.to.length">&rarr; <span ng-repeat="target in msg.to">{{user(target).name}}</span></small> <span class="label label-default pull-right">{{msg.date | date:'yyyy-MM-dd HH:mm:ss'}}</span></h4>
           <a href="./compose/{{msg.id}}" class="pull-right">Responder</a>
           <p ng-repeat="block in blocks(msg.data)">{{block}}</p>
         </div>
@@ -23,6 +21,6 @@
 </div>
 
 <ul class="pager">
-  <li ng-class="canNext() ? '' : 'disabled'" class="previous"><a href="#" ng-click="next()">&larr; Older</a></li>
-  <li ng-class="canPrev() ? '' : 'disabled'" class="next"><a href="#" ng-click="prev()">Newer &rarr;</a></li>
+  <li ng-class="canNext() ? '' : 'disabled'" class="previous"><a href="#" ng-click="next()">&larr; Menos reciente</a></li>
+  <li ng-class="canPrev() ? '' : 'disabled'" class="next"><a href="#" ng-click="prev()">M&aacute;s reciente &rarr;</a></li>
 </ul>

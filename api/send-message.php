@@ -7,8 +7,8 @@ if (!is_array($json_data) || !isset($json_data['public']) || !isset($json_data['
 	die_error(400, "Bad JSON - must be an object with public, title, data, and to.");
 }
 $post_is_public = $json_data['public'] ? 1 : 0;
-$post_data = $json_data['data'];
-$post_title = $json_data['title'];
+$post_data = utf8_decode($json_data['data']);
+$post_title = utf8_decode($json_data['title']);
 $post_prev = isset($json_data['prev']) ? $json_data['prev'] : NULL;
 $post_recipients = $json_data['to'];
 if (!is_string($post_data) || !is_string($post_title) || !is_array($post_recipients) || ($post_prev != NULL && !is_int($post_prev))) {

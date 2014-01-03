@@ -141,7 +141,7 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
       public: msg.public,
       prev: parseInt(msg.prev)
     }).then(function(data) {
-      $scope.$emit('flash', 'info', 'Sent!', 'Your message has been sent!', {dismissable: true});
+      $scope.$emit('flash', 'info', 'Enviado!', 'Tu mensaje ha enviado!', {dismissable: true});
     });
   };
 
@@ -162,10 +162,10 @@ app.controller('Users', ['$scope', '$location', 'User',
   $scope.editUser = null;
 
   $scope.User = User;
-  $scope.count = function() {
+  /* $scope.count = function() {
     var n = User.others.length;
-    return "There " + (n === 1 ? 'is ' : 'are ') + n + (n === 1 ? ' user.' : ' users.');
-  };
+    return "Hay " + n + " personas.";
+  }; */
   $scope.access = function() {
     return User.user.access;
   };
@@ -289,9 +289,9 @@ app.controller('Token', ['$routeParams', '$location', 'User',
 app.controller('Navbar', ['$scope', 'User', function Navbar($scope, User) {
   $scope.User = User;
   $scope.logout = User.logout;
-  $scope.unread = function() {
-    return 4;
-  };
+  /*$scope.unread = function() {
+    return 4; //User.messages.inboxCount();
+  };*/
 }]);
 
 app.controller('Flash', ['$scope', '$rootScope', 'Storage',

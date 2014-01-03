@@ -150,6 +150,16 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
           headers: headers()
         }));
       },
+      inboxCount: function() {
+        return use($http.get('messages.php', {
+          params: {
+            offset: 0, // ignored on server
+            limit: 0, // ignored on server
+            scope: 'count'
+          },
+          headers: headers()
+        }));
+      },
       inbox: function(offset, limit) {
         return use($http.get('messages.php', {
           params: {
