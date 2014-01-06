@@ -39,8 +39,10 @@ app.config(['$locationProvider', function($locationProvider) {
 }]);
 
 app.run(function($rootScope, $location, User) {
+  $rootScope.city = "Toluca";
+
   $rootScope.page = {
-    title: 'Un Misterio en Cusco',
+    title: 'Un Misterio en ' + $rootScope.city,
     fullTitle: function() {
       var ctx = $rootScope.page.context;
       return $rootScope.page.title + (ctx ? ' - ' + ctx : '');
@@ -63,6 +65,12 @@ app.run(function($rootScope, $location, User) {
       $location.url('/forbidden'); // ?proceed=' + encodeURIComponent($location.path())
     }
   });
+
+  $rootScope.onShouldUpdateInbox = function(call) { // I don't know what I'm doing.
+    $rootScope.$on('$routeChangeStart', function(event, next, current) {
+      call();
+    });
+  };
 
   var stashed = null;
   $rootScope.stash = function(value) {

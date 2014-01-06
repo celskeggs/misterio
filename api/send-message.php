@@ -2,12 +2,13 @@
 $req_admin = FALSE;
 $get_json = TRUE;
 require("access.php");
+set_json();
 if (!is_array($json_data) || !isset($json_data['public']) || !isset($json_data['title']) || !isset($json_data['data']) || !isset($json_data['to'])) {
 	die_error(400, "Bad JSON - must be an object with public, title, data, and to.");
 }
 $post_is_public = $json_data['public'] ? 1 : 0;
-$post_data = $json_data['data'];
-$post_title = $json_data['title'];
+$post_data = utf8_decode($json_data['data']);
+$post_title = utf8_decode($json_data['title']);
 $post_prev = isset($json_data['prev']) ? $json_data['prev'] : NULL;
 $post_recipients = $json_data['to'];
 if (!is_string($post_data) || !is_string($post_title) || !is_array($post_recipients) || ($post_prev != NULL && !is_int($post_prev))) {
@@ -22,7 +23,7 @@ $post_date_timestamp = time();
 $post_date = date('Y-m-d H:i:s', $post_date_timestamp);
 // author, ispublic, data, title, prev
 $qry = $db->prepare("INSERT INTO `Posts` (`Author`, `IsPublic`, `Date`, `Contents`, `Title`, `ResponseTo`) VALUES (?, ?, ?, ?, ?, ?)");
-if ($qry === FALSE || !$qry->bind_param("iii", $user_uid, $post_is_public, $post_date, $post_data, $post_title, $post_prev) || !$qry->execute() || !$qry->close()) {
+if ($qry === FALSE || !$qry->bind_param("iisssi", $user_uid, $post_is_public, $post_date, $post_data, $post_title, $post_prev) || !$qry->execute() || !$qry->close()) {
 	die_error(500, "Server Error: Could not submit body query.");
 }
 $post_id = $db->insert_id;

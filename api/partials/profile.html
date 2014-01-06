@@ -1,0 +1,36 @@
+<div class="media">
+  <a class="pull-left" href="/users/{{uid}}">
+    <img class="media-object user-avatar" src="{{'./img/' + user(uid).avatar}}" alt="{{user(uid).name}}">
+  </a>
+  <div class="media-body">
+    <h1>{{user(uid).name}}</h1>
+    <p ng-if="totalFrom !== undefined">{{user(uid).name}} has written <strong>{{totalFrom}}</strong> posts.</p>
+  </div>
+</div>
+
+<ul class="pager">
+  <li ng-class="canNext() ? '' : 'disabled'" class="previous"><a href="#" ng-click="next()">&larr; Menos reciente</a></li>
+  <li ng-class="canPrev() ? '' : 'disabled'" class="next"><a href="#" ng-click="prev()">M&aacute;s reciente &rarr;</a></li>
+</ul>
+
+<div class="panel panel-default">
+  <div class="panel-body">
+    <div class="media-list">
+      <div ng-repeat="msg in messages" class="media" ng-class="msg.public ? '' : 'media-private'">
+        <a class="pull-left" href="/users/{{msg.from}}">
+          <img class="media-object user-avatar" src="{{'./img/' + user(msg.from).avatar}}" alt="{{user(msg.from).name}}">
+        </a>
+        <div class="media-body">
+          <h4>{{msg.title}} &nbsp; <small>{{user(msg.from).name}} &rarr; <span ng-if="!(msg.to &amp;&amp; msg.to.length)">{{msg.public ? "Todos" : "Nadie"}}</span> <span ng-if="msg.to &amp;&amp; msg.to.length"><span ng-repeat="target in msg.to">{{user(target).name}} &nbsp;</span></span></small> <span class="label label-default pull-right">{{msg.date | date:'yyyy-MM-dd HH:mm:ss'}}</span></h4>
+          <a href="./compose/{{msg.id}}" class="pull-right">Responder</a>
+          <p ng-repeat="block in blocks(msg.data)">{{block}}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ul class="pager">
+  <li ng-class="canNext() ? '' : 'disabled'" class="previous"><a href="#" ng-click="next()">&larr; Menos reciente</a></li>
+  <li ng-class="canPrev() ? '' : 'disabled'" class="next"><a href="#" ng-click="prev()">M&aacute;s reciente &rarr;</a></li>
+</ul>

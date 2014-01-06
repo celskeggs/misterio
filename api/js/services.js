@@ -63,7 +63,7 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
   }
   function headers() {
     return {
-      'x-session': User.user.session
+      'X-Session': User.user.session
     };
   }
   function use(req, manipulate) {
@@ -150,6 +150,16 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
           headers: headers()
         }));
       },
+      inboxCount: function() {
+        return use($http.get('messages.php', {
+          params: {
+            offset: 0, // ignored on server
+            limit: 0, // ignored on server
+            scope: 'count'
+          },
+          headers: headers()
+        }));
+      },
       inbox: function(offset, limit) {
         return use($http.get('messages.php', {
           params: {
@@ -204,7 +214,7 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
         });
       },
       all: function() {
-        return use($http.get('users.php', config()), function(data) {
+        return use($http.get('get-users.php', config()), function(data) {
           var others = data.data, uid = data.uid;
           User.others.length = 0;
           User.others.push.apply(User.others, others);

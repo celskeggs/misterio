@@ -42,3 +42,12 @@ textarea {
   white-space: nowrap;
   width: 1px;
 }
+
+.media {
+  background-color: #eee;
+  border: 1px solid #ccc;
+}
+
+.media-private {
+  background-color: #ddd;
+}

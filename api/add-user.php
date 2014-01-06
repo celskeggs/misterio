@@ -2,7 +2,8 @@
 $req_admin = TRUE;
 $get_json = TRUE;
 require("access.php");
-if (!is_array($json_data) || !isset($json_data['name']) || !isset($json_data['email']) || !isset($json_data['access']) || !isset($json_data['avatar'])) {
+set_json();
+if (!is_array($json_data) || !isset($json_data['name']) || !(isset($json_data['email']) || $json_data['email'] === null) || !isset($json_data['access']) || !isset($json_data['avatar'])) {
 	die_error(400, "Bad JSON - must be an object with name, email, access, and avatar.");
 }
 $new_access = $json_data['access'] ? 1 : 0;
@@ -27,6 +28,6 @@ if (!is_int($new_id) || $new_id <= 0) {
 	die_error(500, "Server Error: Index assertion failed.");
 }
 if ($new_email !== null) {
-	mail($new_email, "Tienes una cuenta del Misterio en Cuzco!", "Hola!\nAhora, tú tienes una cuenta del Misterio en Cuzco.\nPuedes entrar con este enlace: " . $config_base_url . $new_token . "\n");
+	mail($new_email, "Tienes una cuenta del Misterio en $City!", "Hola!\nAhora, tú tienes una cuenta del Misterio en $City.\nPuedes entrar con este enlace: " . $config_base_url . $new_token . "\n");
 }
 echo json_encode(array('uid' => $new_id));
