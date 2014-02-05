@@ -44,10 +44,19 @@ textarea {
 }
 
 .media {
-  background-color: #eee;
-  border: 1px solid #ccc;
+  background-color: #f7f7f7;
+  border: 1px solid #e0e0e0;
+  border-radius: 3px;
+  padding: 5px;
 }
 
 .media-private {
-  background-color: #ddd;
+  background-color: #efefef;
+}
+
+.avatar-display-elem {
+  background-color: #eee;
+  margin: 5px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
 }

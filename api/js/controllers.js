@@ -162,6 +162,11 @@ app.controller('Users', ['$scope', '$location', 'User',
   $scope.editUser = null;
 
   $scope.User = User;
+
+  $scope.avatars = [];
+  User.avatars.get().then(function (data) {
+    $scope.avatars = data;
+  });
   /* $scope.count = function() {
     var n = User.others.length;
     return "Hay " + n + " personas.";
@@ -202,8 +207,15 @@ app.controller('Users', ['$scope', '$location', 'User',
     if ($scope.state.adding) {
       User.users.add($scope.editUser).then($scope.cancel);
     } else {
-      User.users.update($scope.editUser.uid, $scope.editUser).then($scope.cancel);
+      User.users.update($scope.editUser.uid, $scope.editUser).then($scope.commit);
     }
+  };
+  $scope.commit = function() {
+    var other = User.others[$scope.state.editing];
+    for (var key in $scope.editUser) {
+      other[key] = $scope.editUser[key];
+    }
+    $scope.cancel();
   };
   $scope.cancel = function() {
     if (!User.user.access) return;

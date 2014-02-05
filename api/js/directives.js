@@ -9,8 +9,12 @@ app.directive('navLink', ['$location', function($location) {
     restrict: 'A',
     link: function(scope, element, attrs) {
       var parent = element.parent();
+      var pattern = null;
+      if (attrs.navLink) {
+        pattern = new RegExp(attrs.navLink);
+      }
       var update = function() {
-        if ($location.path() === attrs.href)
+        if ($location.path() === attrs.href || pattern.test($location.path()))
           parent.addClass('active');
         else
           parent.removeClass('active');
@@ -40,7 +44,6 @@ app.directive('focusMe', function() {
 app.directive('inboxCounter', function($interval, User) {
   return function(scope, element, attrs) {
     var stopUpdate;
-    console.log(element);
     function updateCount() {
       if (User.user.id === null) {
         element.text("");

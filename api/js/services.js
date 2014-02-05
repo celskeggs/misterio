@@ -131,6 +131,14 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
       Storage.set('user', User.user);
       $location.url('/forbidden');
     },
+    avatars: {
+      get: function() {
+        return use($http.get('get-avatars.php', {
+          params: {},
+          headers: headers()
+        }));
+      }
+    },
     messages: {
       get: function(id) {
         return use($http.get('get-message.php', {
