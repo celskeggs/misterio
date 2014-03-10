@@ -12,7 +12,7 @@ if (!is_array($json_data) || !isset($json_data['name']) || !isset($json_data['em
 }
 $new_access = $json_data['access'] ? 1 : 0;
 $new_avatar = $json_data['avatar'];
-$new_name = $json_data['name'];
+$new_name = utf8_decode($json_data['name']);
 $new_email = $json_data['email'] !== null ? $json_data['email'] : "";
 if (!is_string($new_name) || !is_string($new_avatar) || !is_string($new_email)) {
 	die_error(400, "Bad JSON - Subtype mismatch.");
@@ -20,9 +20,9 @@ if (!is_string($new_name) || !is_string($new_avatar) || !is_string($new_email)) 
 if ($new_email === "") {
 	$new_email = null;
 }
-$qry = $db->prepare("SELECT `Email` FROM `Players` WHERE `UID`=?");
+$qry = $db->prepare("SELECT `Email`,`Token` FROM `Players` WHERE `UID`=?");
 $old_email = NULL;
-if ($qry === FALSE || !$qry->bind_param("i", $target_id) || !$qry->execute() || !$qry->bind_result($old_email)) {
+if ($qry === FALSE || !$qry->bind_param("i", $target_id) || !$qry->execute() || !$qry->bind_result($old_email, $old_token)) {
 	die_error(500, "Server Error: Could not submit prefix query.");
 }
 if (!$qry->fetch()) {
@@ -31,7 +31,7 @@ if (!$qry->fetch()) {
 if (!$qry->close()) {
 	die_error(500, "Server Error: Could not complete prefix query.");
 }
-$new_token = $new_email === null ? null : generate_token();
+$new_token = $new_email === null ? null : $new_email == $old_email ? $old_token : generate_token();
 $qry = $db->prepare("UPDATE `Players` SET `Token` = ? , `Email` = ? , `Name` = ? , `Admin` = ? , `Avatar` = ? WHERE `UID` = ?");
 if ($qry === FALSE || !$qry->bind_param("sssisi", $new_token, $new_email, $new_name, $new_access, $new_avatar, $target_id) || !$qry->execute() || !$qry->close()) {
 	die_error(500, "Server Error: Could not submit body query.");

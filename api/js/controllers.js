@@ -21,6 +21,18 @@ app.controller('Feed', ['$scope', '$location', 'User',
     });
   };
 
+  $scope.delete = function(id) {
+    if (!User.user.access) return;
+    if (confirm('Are you sure you wish to delete this message?')) {
+      User.messages.remove(id);
+      $scope.get();
+    }
+  };
+
+  $scope.access = function() {
+    return User.user.access;
+  };
+
   $scope.canNext = function() {
     return $scope.offset + $scope.limit < $scope.total;
   };
@@ -69,6 +81,19 @@ app.controller('Inbox', ['$scope', '$location', 'User',
   $scope.canNext = function() {
     return $scope.offset + $scope.limit < $scope.total;
   };
+
+  $scope.access = function() {
+    return User.user.access;
+  };
+
+  $scope.delete = function(id) {
+    if (!User.user.access) return;
+    if (confirm('Are you sure you wish to delete this message?')) {
+      User.messages.remove(id);
+      $scope.get();
+    }
+  };
+
   $scope.canPrev = function() {
     return $scope.offset !== 0;
   };
@@ -154,6 +179,61 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
       $scope.getPrev();
     }
   }
+}]);
+
+app.controller('Broadcast', ['$scope', '$location', '$routeParams', 'User',
+    function Compose($scope, $location, $routeParams, User) {
+  $scope.user = function(uid) {
+    return User.userLookup[uid];
+  };
+  $scope.message = "";
+
+  var delimiter = "====================\n";
+
+  $scope.generate = function() {
+    var after = false;
+    for (var index in User.others) {
+      if (after) { $scope.message += delimiter; }
+      after = true;
+      var user = User.others[index];
+      $scope.message += user.uid + "||| Message title goes here |||\nMessage body for " + user.name + " goes here.\n";
+    }
+  };
+
+  $scope.submit = function() {
+    var msg = $scope.message;
+    var parts = msg.split(delimiter);
+    var messages = [];
+    for (var index in parts) {
+      var part = parts[index];
+      var sections = part.split("|||");
+      if (sections.length != 3) {
+        $scope.$emit('flash', 'error', 'Bad format', 'The delimiter ||| was found ' + sections.length + ' times instead of 3 times.', {dismissable: true});
+        return;
+      }
+      var uid = sections[0], title = sections[1], contents = sections[2];
+      title = title.replace(/^[ \t\n]+|[ \t\n]+$/g, ""); // Trim string of whitespace.
+      contents = contents.replace(/^[ \t\n]+|[ \t\n]+$/g, "");
+      messages.push({"title": title, "data": contents, "public": false, "to": [parseInt(uid)]});
+    }
+    for (var mid in messages) {
+      var message = messages[mid];
+      var fn = function(data) {
+        $scope.$emit('flash', 'info', 'Enviado!', 'Tu mensaje numero ' + this.mid + "/" + messages.length + " ha enviado!", {dismissable: true});
+      }.bind({"mid": parseInt(mid) + 1});
+      User.messages.send(message).then(fn);
+    }
+
+/*    User.messages.send({
+      title: msg.title,
+      data: msg.data,
+      to: msg.to.split(TO_SPLIT).map(parseInt).filter(function (e) {return !isNaN(e);}),
+      public: msg.public,
+      prev: parseInt(msg.prev)
+    }).then(function(data) {
+      $scope.$emit('flash', 'info', 'Enviado!', 'Tu mensaje ha enviado!', {dismissable: true});
+    }); */
+  };
 }]);
 
 app.controller('Users', ['$scope', '$location', 'User',

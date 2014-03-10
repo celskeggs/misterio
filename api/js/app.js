@@ -18,9 +18,10 @@ app.config(['$routeProvider', function($routeProvider) {
   }
 
   r('/', 'feed', 'Feed');
-  r('/inbox', 'inbox', 'Inbox');
+  r('/inbox', 'feed', 'Inbox');
   r('/compose', 'compose', 'Compose');
   r('/compose/:id', 'compose', 'Compose');
+  r('/broadcast', 'broadcast', 'Broadcast');
   r('/users', 'users', 'Users');
   r('/users/add', 'add-user', 'AddUser');
   r('/users/:uid', 'profile', 'Profile');

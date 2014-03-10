@@ -8,7 +8,7 @@ if (!is_array($json_data) || !isset($json_data['name']) || !(isset($json_data['e
 }
 $new_access = $json_data['access'] ? 1 : 0;
 $new_avatar = $json_data['avatar'];
-$new_name = $json_data['name'];
+$new_name = utf8_decode($json_data['name']);
 $new_email = $json_data['email'] !== null ? $json_data['email'] : "";
 if (!is_string($new_name) || !is_string($new_avatar) || !is_string($new_email)) {
 	die_error(400, "Bad JSON - Subtype mismatch.");
