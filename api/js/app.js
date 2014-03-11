@@ -24,7 +24,7 @@ app.config(['$routeProvider', function($routeProvider) {
   r('/broadcast', 'broadcast', 'Broadcast');
   r('/users', 'users', 'Users');
   r('/users/add', 'add-user', 'AddUser');
-  r('/users/:uid', 'profile', 'Profile');
+  r('/users/:uid', 'feed', 'Profile');
 
   r('/token/:token', 'loading', 'Token');
 

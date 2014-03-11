@@ -223,16 +223,6 @@ app.controller('Broadcast', ['$scope', '$location', '$routeParams', 'User',
       }.bind({"mid": parseInt(mid) + 1});
       User.messages.send(message).then(fn);
     }
-
-/*    User.messages.send({
-      title: msg.title,
-      data: msg.data,
-      to: msg.to.split(TO_SPLIT).map(parseInt).filter(function (e) {return !isNaN(e);}),
-      public: msg.public,
-      prev: parseInt(msg.prev)
-    }).then(function(data) {
-      $scope.$emit('flash', 'info', 'Enviado!', 'Tu mensaje ha enviado!', {dismissable: true});
-    }); */
   };
 }]);
 
@@ -242,15 +232,25 @@ app.controller('Users', ['$scope', '$location', 'User',
   $scope.editUser = null;
 
   $scope.User = User;
+  $scope.destroying = 0;
+
+  $scope.destroy = function(n) {
+    if (n === "real") {
+      if (confirm("Erase all messages?")) {
+        User.messages.clear().then(function () {
+          $scope.$emit('flash', 'danger', 'Destriudo!', 'The database has been cleared!', {dismissable: true});
+        });
+      }
+    } else {
+      $scope.destroying = n;
+    }
+  };
 
   $scope.avatars = [];
   User.avatars.get().then(function (data) {
     $scope.avatars = data;
   });
-  /* $scope.count = function() {
-    var n = User.others.length;
-    return "Hay " + n + " personas.";
-  }; */
+
   $scope.access = function() {
     return User.user.access;
   };
@@ -274,6 +274,7 @@ app.controller('Users', ['$scope', '$location', 'User',
       $scope.editUser[key] = other[key];
     }
   };
+
   $scope.delete = function(index) {
     if (!User.user.access) return;
     var user = User.others[index];
@@ -290,6 +291,7 @@ app.controller('Users', ['$scope', '$location', 'User',
       User.users.update($scope.editUser.uid, $scope.editUser).then($scope.commit);
     }
   };
+
   $scope.commit = function() {
     var other = User.others[$scope.state.editing];
     for (var key in $scope.editUser) {
@@ -297,6 +299,7 @@ app.controller('Users', ['$scope', '$location', 'User',
     }
     $scope.cancel();
   };
+
   $scope.cancel = function() {
     if (!User.user.access) return;
     $scope.state.adding = false;
@@ -380,10 +383,10 @@ app.controller('Token', ['$routeParams', '$location', 'User',
 
 app.controller('Navbar', ['$scope', 'User', function Navbar($scope, User) {
   $scope.User = User;
+  $scope.access = function() {
+    return User.user.access;
+  };
   $scope.logout = User.logout;
-  /*$scope.unread = function() {
-    return 4; //User.messages.inboxCount();
-  };*/
 }]);
 
 app.controller('Flash', ['$scope', '$rootScope', 'Storage',

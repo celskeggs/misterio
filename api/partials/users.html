@@ -60,4 +60,9 @@
       {{avatar}}
     </li>
   </ul>
+
+  <button type="button" class="btn btn-danger" ng-if="access()" ng-click="destroy(1)">Destruir todos mensajes</button>
+  <button type="button" class="btn btn-danger" ng-if="destroying &gt;= 1" ng-click="destroy(2)">&#173;Este va a borrar todos los mensajes!</button>
+  <button type="button" class="btn btn-danger" ng-if="destroying &gt;= 2" ng-click="destroy(3)">All messages will be eliminated!</button>
+  <button type="button" class="btn btn-danger" ng-if="destroying &gt;= 3" ng-click="destroy('real')">You might be making a mistake! Are you sure?</button>
 </form>

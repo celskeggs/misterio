@@ -209,6 +209,12 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
           },
           headers: headers()
         }));
+      },
+      clear: function() {
+        return use($http.delete('clear-messages.php', {
+          params: {},
+          headers: headers()
+        }));
       }
     },
     users: {

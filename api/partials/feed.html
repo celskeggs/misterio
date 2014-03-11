@@ -1,3 +1,13 @@
+<div class="media" ng-if="uid !== undefined">
+  <a class="pull-left" href="/users/{{uid}}">
+    <img class="media-object user-avatar" src="{{'./img/' + user(uid).avatar}}" alt="{{user(uid).name}}">
+  </a>
+  <div class="media-body">
+    <h1>{{user(uid).name}}</h1>
+    <p ng-if="totalFrom !== undefined">{{user(uid).name}} has written <strong>{{totalFrom}}</strong> posts.</p>
+  </div>
+</div>
+
 <ul class="pager">
   <li ng-class="canNext() ? '' : 'disabled'" class="previous"><a href="#" ng-click="next()">&larr; Menos reciente</a></li>
   <li ng-class="canPrev() ? '' : 'disabled'" class="next"><a href="#" ng-click="prev()">M&aacute;s reciente &rarr;</a></li>
