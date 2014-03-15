@@ -1,6 +1,6 @@
-<h1>Personas<button type="button" class="btn btn-success pull-right" ng-click="add()" ng-if="access()">+ Nueva Persona</button></h1>
+<h1>Personajes<button type="button" class="btn btn-success pull-right" ng-click="add()" ng-if="access()">+ Nueva Persona</button></h1>
 
-<p>Hay {{User.others.length}} personas.</p>
+<p>Hay {{User.others.length}} personajes que puedes ver ahora. Est&aacute;s en instancia {{User.user.instance}}. Solamente puedes ver personajes en esta instancia.</p>
 
 <form name="EditForm" ng-submit="save()">
   <table class="table table-striped table-hover">
@@ -8,6 +8,7 @@
       <tr>
         <th>N&uacute;mero</th>
         <th>Nombre</th>
+        <th>Instance</th>
         <th ng-if="access()">Email</th>
         <th>Foto</th>
         <th ng-if="access()">Acceso</th>
@@ -18,12 +19,22 @@
       <tr ng-repeat="user in User.others">
         <td><a ng-href="./users/{{user.uid}}">{{user.uid}}</a></td>
         <td ng-hide="state.editing === $index">{{user.name}}</td>
+        <td ng-hide="state.editing === $index">
+          <div class="btn-group-xs" ng-if="access()">
+            <button type="button" ng-repeat="inst in instances()" ng-click="move(user.uid, inst)" class="btn btn-large" ng-class="user.uid == User.user.id ? 'btn-primary' : 'btn-danger'" ng-disabled="user.instance == inst">{{inst}}</button>
+          </div>
+          <span ng-if="!access()">{{user.instance}}</span>
+        </td>
         <td ng-hide="state.editing === $index" ng-if="access()">{{user.email}}</td>
-        <td ng-hide="state.editing === $index">{{user.avatar}}</td>
+        <td ng-hide="state.editing === $index">
+          <img class="user-avatar-small" src="./img/{{user.avatar}}">
+          {{user.avatar}}
+        </td>
         <td ng-hide="state.editing === $index" ng-if="access()">{{ternary(user.access, 'Administrador', 'Usuario')}}</td>
         <td ng-if="access() &amp;&amp; state.editing === $index">
           <input type="text" class="form-control" ng-model="editUser.name" required>
         </td>
+        <td ng-if="access() &amp;&amp; state.editing === $index">{{User.user.instance}}</td>
         <td ng-if="access() &amp;&amp; state.editing === $index">
           <input type="email" class="form-control" ng-model="editUser.email">
         </td>
@@ -43,6 +54,7 @@
       <tr ng-if="access() &amp;&amp; state.adding">
         <td></td>
         <td><input type="text" focus-me="true" class="form-control" ng-model="editUser.name" required></td>
+        <td>{{User.user.instance}}</td>
         <td><input type="email" class="form-control" ng-model="editUser.email"></td>
         <td><input type="text" class="form-control" ng-model="editUser.avatar" required></td>
         <td><input type="checkbox" ng-model="editUser.access"></td>

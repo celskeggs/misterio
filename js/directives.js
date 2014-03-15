@@ -45,6 +45,7 @@ app.directive('inboxCounter', function($interval, User) {
   return function(scope, element, attrs) {
     var stopUpdate;
     function updateCount() {
+      console.log("update");
       if (User.user.id === null) {
         element.text("");
       } else {

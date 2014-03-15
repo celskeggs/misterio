@@ -2,7 +2,6 @@
 // ini_set('display_errors', 1);
 $config_base_url = "http://cgscomwww.catlin.edu/spanish/misterio/token/";
 $City = "Toluca";
-
 function die_error($code, $message) {
 	// http_response_code($code);
 	header(':', true, $code);
@@ -12,10 +11,10 @@ function die_error($code, $message) {
 if (!isset($req_admin) || ($req_admin !== TRUE && $req_admin !== FALSE)) {
 	die_error(500, "Server Error: Access requirement not specified.");
 }
+$headers = apache_request_headers();
 if (isset($_GET['debugtoken'])) {
 	$auth_token = $_GET['debugtoken'];
 } else {
-	$headers = apache_request_headers();
 	if (!isset($headers["X-Session"])) {
 		die_error(403, "No X-Session header.");
 	}
@@ -23,11 +22,11 @@ if (isset($_GET['debugtoken'])) {
 }
 $dbname = "spanish_mystery";
 require("/home/web/spanish/dba.php");
-$qry = $db->prepare("SELECT `UID`, `Name`, `Email`, `Admin` FROM `Players` WHERE `Token`=?");
+$qry = $db->prepare("SELECT `UID`, `Name`, `Email`, `Admin`, `Instance` FROM `Players` WHERE `Token`=?");
 if ($qry === FALSE
  || !$qry->bind_param("s", $auth_token)
  || !$qry->execute()
- || !$qry->bind_result($user_uid, $user_name, $user_email, $user_admin)) {
+ || !$qry->bind_result($user_uid, $user_name, $user_email, $user_admin, $user_instance)) {
 	die_error(500, "Server Error: Could not submit access query.");
 }
 if (!$qry->fetch()) {

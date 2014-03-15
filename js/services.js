@@ -108,7 +108,8 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
       id: null,
       name: null,
       access: null,
-      session: null
+      session: null,
+      instance: null
     },
     others: [],
     userLookup: {}, // hmmm
@@ -128,6 +129,7 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
       User.user.name = null;
       User.user.access = null;
       User.user.session = null;
+      User.user.instance = null;
       Storage.set('user', User.user);
       $location.url('/forbidden');
     },
@@ -162,7 +164,7 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
         return use($http.get('messages.php', {
           params: {
             offset: 0, // ignored on server
-            limit: 0, // ignored on server
+            limit: 1, // ignored on server
             scope: 'count'
           },
           headers: headers()
@@ -178,11 +180,10 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
           headers: headers()
         }));
       },
-      profile: function(uid, type, offset, limit) {
+      profile: function(uid, offset, limit) {
         return use($http.get('profile.php', {
           params: {
             uid: uid,
-            type: type,
             offset: offset,
             limit: limit
           },
@@ -227,9 +228,17 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
           User.userLookup[user.uid] = user;
         });
       },
+      move: function(uid, instance) {
+        return use($http.post('move-user.php', {instance: instance}, {
+          params: {
+            uid: uid
+          },
+          headers: headers()
+        }));
+      },
       all: function() {
         return use($http.get('get-users.php', config()), function(data) {
-          var others = data.data, uid = data.uid;
+          var others = data.data, uid = data.uid, instance = data.instance;
           User.others.length = 0;
           User.others.push.apply(User.others, others);
           User.userLookup = {};
@@ -239,6 +248,7 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
           User.user.id = uid;
           User.user.name = User.userLookup[uid].name;
           User.user.access = User.userLookup[uid].access;
+          User.user.instance = instance;
           Storage.set('user', User.user);
         });
       },
