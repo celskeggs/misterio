@@ -24,10 +24,12 @@
           <li><a nav-link="^/$" href="./">Correos</a></li>
           <li><a nav-link="^/inbox$" href="./inbox">Inbox <span ng-cloak inbox-counter class="badge">...</span></a></li>
           <li><a nav-link="^/compose(/[0-9]+)?$" href="./compose">Redactar</a></li>
-          <li><a nav-link="^/users$" href="./users">Personas</a></li>
+          <li><a nav-link="^/users$" href="./users">Personajes</a></li>
           <li ng-if="access()"><a nav-link="^/broadcast$" href="./broadcast">Emitir</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right" ng-cloak ng-if="User.user.session">
+          <li ng-repeat="inst in instances()"><button class="navbar-btn btn" ng-class="User.user.instance == inst ? 'btn-default' : 'btn-warning'" ng-click="selectInstance(inst)" ng-disabled="!access() || User.user.instance == inst">{{inst}}</button></li>
+          <li><div class="navbar-btn name-slot">Nombre: {{username()}}</div></li>
           <li><button class="btn btn-default navbar-btn" ng-click="logout()">Salir</button></li>
         </ul>
       </div>

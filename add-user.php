@@ -19,8 +19,8 @@ if ($new_email === "") {
 } else {
 	$new_token = generate_token();
 }
-$qry = $db->prepare("INSERT INTO `Players` (`Name`, `Token`, `Email`, `Admin`, `Avatar`) VALUES (?, ?, ?, ?, ?)");
-if ($qry === FALSE || !$qry->bind_param("sssis", $new_name, $new_token, $new_email, $new_access, $new_avatar) || !$qry->execute() || !$qry->close()) {
+$qry = $db->prepare("INSERT INTO `Players` (`Name`, `Token`, `Email`, `Admin`, `Avatar`, `Instance`) VALUES (?, ?, ?, ?, ?, ?)");
+if ($qry === FALSE || !$qry->bind_param("sssisi", $new_name, $new_token, $new_email, $new_access, $new_avatar, $user_instance) || !$qry->execute() || !$qry->close()) {
 	die_error(500, "Server Error: Could not submit body query.");
 }
 $new_id = $db->insert_id;

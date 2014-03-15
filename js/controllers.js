@@ -122,7 +122,7 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
     function Compose($scope, $location, $routeParams, User, Storage) {
   $scope.dirty = 2;
   $scope.message = Storage.get('compose') || ($scope.dirty = 0, $scope.message = {
-    public: true, to: ""
+    public: true, to: []
   });
   $scope.$watchCollection('message', _.throttle(function(value) {
     Storage.set('compose', value);
@@ -132,14 +132,26 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
   $scope.user = function(uid) {
     return User.userLookup[uid];
   };
+  $scope.User = User;
 
-  var TO_SPLIT = /\s+,\s+/g;
+  $scope.select = function(id) {
+    var index = $scope.message.to.indexOf(id);
+    if (index === -1) {
+      $scope.message.to.push(id);
+    } else {
+      $scope.message.to.splice(index, 1);
+    }
+  };
+  $scope.selected = function(id) {
+    return $scope.message.to.indexOf(id) !== -1;
+  };
+  $scope.toggle_locked = function() {
+    $scope.message.public = !$scope.message.public;
+  };
 
   function gotPrev(prev) {
     $scope.prev = prev;
-    var to = _.compact(($scope.message.to || '').split(TO_SPLIT));
-    ~to.indexOf(prev.from+'') || to.push(prev.from);
-    $scope.message.to = to.join(', ');
+    $scope.message.to = [prev.from];
   }
 
   $scope.getPrev = function() {
@@ -151,7 +163,7 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
 
   $scope.reset = function() {
     $scope.message = {
-      public: true, to: ""
+      public: true, to: []
     };
     $scope.dirty = 0;
     $scope.SendForm.$setPristine();
@@ -162,11 +174,12 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
     User.messages.send({
       title: msg.title,
       data: msg.data,
-      to: msg.to.split(TO_SPLIT).map(parseInt).filter(function (e) {return !isNaN(e);}),
+      to: msg.to,
       public: msg.public,
       prev: parseInt(msg.prev)
     }).then(function(data) {
       $scope.$emit('flash', 'info', 'Enviado!', 'Tu mensaje ha enviado!', {dismissable: true});
+      $scope.reset();
     });
   };
 
@@ -251,6 +264,24 @@ app.controller('Users', ['$scope', '$location', 'User',
     $scope.avatars = data;
   });
 
+  $scope.move = function(uid, target) {
+    var msg1, msg2;
+    if (uid == User.user.id) {
+      msg1 = "Are you sure that you want to switch to instance " + target + "?";
+      msg2 = "Estás";
+    } else {
+      msg1 = "Are you sure that you want to move this user to instance " + target + "? You will not be able to see them unless you move yourself to the other instance.";
+      msg2 = "Está";
+    }
+    if (confirm(msg1)) {
+      User.users.move(uid, target).then(function (data) {
+        User.users.all().then(function(data) {
+          $scope.$emit('flash', 'info', 'Movido!', msg2 + ' en instancia ' + target, {dismissable:true});
+        });
+      });
+    }
+  };
+
   $scope.access = function() {
     return User.user.access;
   };
@@ -271,7 +302,11 @@ app.controller('Users', ['$scope', '$location', 'User',
     $scope.state.editing = index;
     $scope.editUser = {};
     for (var key in other) {
-      $scope.editUser[key] = other[key];
+      if (key == "email" && other[key] == null) {
+        $scope.editUser[key] = "";
+      } else {
+        $scope.editUser[key] = other[key];
+      }
     }
   };
 
@@ -332,7 +367,7 @@ app.controller('Profile', ['$scope', '$location', '$routeParams', 'User',
   $scope.limit = 10;
   $scope.get = function() {
     $scope.messages = [];
-    User.messages.profile(uid, 'all', $scope.offset, $scope.limit)
+    User.messages.profile(uid, $scope.offset, $scope.limit)
       .then(function(data) {
       $scope.messages = data.data;
       $scope.total = data.total;
@@ -381,10 +416,20 @@ app.controller('Token', ['$routeParams', '$location', 'User',
   }
 }]);
 
-app.controller('Navbar', ['$scope', 'User', function Navbar($scope, User) {
+app.controller('Navbar', ['$scope', '$location', 'User', function Navbar($scope, $location, User) {
   $scope.User = User;
   $scope.access = function() {
     return User.user.access;
+  };
+  $scope.selectInstance = function(inst) {
+    if (confirm("Are you sure that you want to switch to instance " + inst + "?")) {
+      User.users.move(User.user.id, inst).then(function (data) {
+        User.users.all().then(function(data) {
+          $scope.$emit('flash', 'info', 'Movido!', 'Estás en instancia ' + inst, {dismissable:true});
+        });
+      });
+      $location.path('/users');
+    }
   };
   $scope.logout = User.logout;
 }]);

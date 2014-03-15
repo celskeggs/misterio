@@ -53,6 +53,14 @@ app.run(function($rootScope, $location, User) {
     }
   };
 
+  $rootScope.instances = function() {
+    return [1, 2, 3, 4];
+  };
+
+  $rootScope.username = function() {
+    return User.user.name;
+  };
+
   $rootScope.ternary = function(cond, a, b) {
     return cond ? a : b;
   };

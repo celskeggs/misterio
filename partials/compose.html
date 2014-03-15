@@ -1,6 +1,6 @@
 <div ng-if="message.prev">
   <div ng-show="prev" class="media">
-    <a class="pull-left" href="/users/{{prev.from}}">
+    <a class="pull-left" href="./users/{{prev.from}}">
       <img class="media-object user-avatar" ng-src="{{'./img/' + user(prev.from).avatar}}" alt="{{user(prev.from).name}}">
     </a>
     <div class="media-body">
@@ -18,7 +18,25 @@
   <div class="form-group">
     <label class="col-sm-2 control-label" for="input-to">Para</label>
     <div class="col-sm-10">
-      <input type="text" id="input-to" ng-model="message.to" class="form-control">
+      <ul class="list-inline">
+        <!-- <input type="text" id="input-to" ng-model="message.to" class="form-control"> -->
+        <li class="avatar-cell" ng-repeat="user in User.others">
+          <div class="avatar-select-elem" ng-class="{'avatar-selected-elem': selected(user.uid)}" ng-click="select(user.uid)">
+            <img src="./img/{{user.avatar}}" />
+            <div>
+              <div>{{user.name}}</div>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="avatar-select-elem avatar-locked-elem" ng-class="{'avatar-selected-elem': !message.public}" ng-click="toggle_locked()">
+            <img src="./img/{{message.public ? 'unlocked.png' : 'locked.png'}}" />
+            <div>
+              <div>{{message.public ? 'P&uacute;blico' : 'Privado'}}</div>
+            </div>
+          </div>
+        </li>
+      </ul>
     </div>
   </div>
   <div class="form-group">
@@ -30,14 +48,6 @@
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
       <textarea class="form-control" rows="15" ng-model="message.data" required></textarea>
-    </div>
-  </div>
-  <div class="form-group">
-    <div class="col-sm-offset-2 col-sm-10">
-      <label>
-        <input type="checkbox" ng-model="message.public">
-        Mensaje p&uacute;blico
-      </label>
     </div>
   </div>
   <div class="form-group">

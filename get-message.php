@@ -6,6 +6,7 @@ set_json();
 if (!isset($_GET['id'])) {
 	die_error(400, "Should have id!");
 }
+// TODO: Possibly limit this by instance? I dunno - does it really matter?
 $post_id = intval($_GET['id']);
 if ($user_admin) { // Show all posts to the administrator
 	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM `Posts` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` ) WHERE `UID`=? AND ? = ?"; // UID, A, A - extra ?=? clause so that I can use the same binding for both queries.
