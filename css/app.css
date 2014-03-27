@@ -145,6 +145,8 @@ textarea {
   -o-transition: height 0.4s;
   transition: height 0.4s;
   overflow: hidden;
+  display: block;
+  height: 100px;
 }
 
 .show-master:not(:hover) > .show-slave {
