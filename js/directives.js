@@ -66,11 +66,9 @@ app.directive('inboxCounter', function($interval, User) {
 app.directive('markdownPreview', function() {
   return function(scope, element, attrs) {
     var update = _.throttle(function update(text) {
-      typeof marked === 'function' && $(element).html(marked(text));
+      var html = (typeof marked === 'function' && text) ? marked(text) : '';
+      $(element).html(html);
     }, 500);
-    /*function update(text) {
-      $(element).is(':visible') && trigger(text);
-    }*/
     scope.$watch(attrs.markdownPreview, update);
     update(scope.$eval(attrs.markdownPreview));
   };
