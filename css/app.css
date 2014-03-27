@@ -48,15 +48,8 @@ textarea {
   width: 1px;
 }
 
-.media {
-  background-color: #f7f7f7;
-  border: 1px solid #e0e0e0;
-  border-radius: 3px;
-  padding: 5px;
-}
-
-.media-private {
-  background-color: #efefef;
+.panel-private {
+  background-color: #fcf8e3;
 }
 
 .avatar-display-elem {
@@ -122,33 +115,4 @@ textarea {
 
 .avatar-inbox-elem {
   margin-left: 0;
-}
-
-.hover-slave {
-  -webkit-transition: opacity 0.4s;
-  -moz-transition: opacity 0.4s;
-  -o-transition: opacity 0.4s;
-  transition: opacity 0.4s;
-}
-
-.hover-master:not(:hover) > .hover-slave {
-  filter:alpha(opacity=50);
-  -khtml-opacity: 0.5;
-  -webkit-opacity: 0.5;
-  -moz-opacity: 0.5;
-  opacity: 0.5;
-}
-
-.show-slave {
-  -webkit-transition: height 0.4s;
-  -moz-transition: height 0.4s;
-  -o-transition: height 0.4s;
-  transition: height 0.4s;
-  overflow: hidden;
-  display: block;
-  height: 100px;
-}
-
-.show-master:not(:hover) > .show-slave {
-  height: 50px;
 }
