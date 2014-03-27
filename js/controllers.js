@@ -134,6 +134,14 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
     write: true
   };
 
+  $scope.showWrite = function() {
+    $scope.state.write = true;
+  };
+
+  $scope.showPreview = function() {
+    $scope.state.write = false;
+  };
+
   $scope.user = function(uid) {
     return User.userLookup[uid];
   };
@@ -478,7 +486,7 @@ app.controller('Flash', ['$scope', '$rootScope', 'Storage',
     }
     if (i >= 1) $scope.flash.splice(0, i);
   });
-    
+
   Storage.status || flash('warning', 'Cookies Disabled!',
     'This site uses a method similar to cookies to manage your user session, but cannot because your cookies are disabled!');
 

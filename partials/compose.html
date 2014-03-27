@@ -53,8 +53,8 @@
   <div class="row">
     <div class="col-sm-offset-2 col-sm-10">
       <ul class="nav nav-tabs">
-        <li ng-click="state.write = false" ng-class="state.write ? 'active' : ''"><a>Write</a></li>
-        <li ng-click="state.write = true" ng-class="state.write ? '' : 'active'"><a>Preview</a></li>
+        <li ng-click="showWrite()" ng-class="state.write ? 'active' : ''"><a>Write</a></li>
+        <li ng-click="showPreview()" ng-class="state.write ? '' : 'active'"><a>Preview</a></li>
       </ul>
     </div>
   </div>
