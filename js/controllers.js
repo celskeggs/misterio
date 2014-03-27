@@ -1,5 +1,6 @@
 'use strict';
 
+
 // controllers
 var app = angular.module('misterio.controllers', []);
 
@@ -120,9 +121,9 @@ app.controller('Inbox', ['$scope', '$location', 'User',
 
 app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Storage',
     function Compose($scope, $location, $routeParams, User, Storage) {
-  $scope.dirty = 2;
+  $scope.dirty = 0;
   $scope.message = Storage.get('compose') || ($scope.dirty = 0, $scope.message = {
-    public: true, to: []
+    public: true, finish: false, to: []
   });
   $scope.$watchCollection('message', _.throttle(function(value) {
     Storage.set('compose', value);
@@ -152,6 +153,9 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
   $scope.toggle_locked = function() {
     $scope.message.public = !$scope.message.public;
   };
+  $scope.toggle_finish = function() {
+    $scope.message.finish = !$scope.message.finish;
+  };
 
   function gotPrev(prev) {
     $scope.prev = prev;
@@ -167,23 +171,30 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
 
   $scope.reset = function() {
     $scope.message = {
-      public: true, to: []
+      public: true, to: [], finish: false
     };
     $scope.dirty = 0;
     $scope.SendForm.$setPristine();
   };
 
+  $scope.sending = false;
+
   $scope.submit = function() {
     var msg = $scope.message;
+    $scope.sending = true;
     User.messages.send({
       title: msg.title,
       data: msg.data,
       to: msg.to,
       public: msg.public,
+      finish: msg.finish,
       prev: parseInt(msg.prev)
     }).then(function(data) {
       $scope.$emit('flash', 'info', 'Enviado!', 'Tu mensaje ha enviado!', {dismissable: true});
       $scope.reset();
+      $scope.sending = false;
+    }, function() {
+      $scope.sending = false;
     });
   };
 
@@ -457,6 +468,17 @@ app.controller('Flash', ['$scope', '$rootScope', 'Storage',
   $rootScope.$on('flash', function(e, type, info, message, options) {
     flash(type, info, message, options);
   });
+  $rootScope.$on('$routeChangeSuccess', function() {
+    var then = Date.now() - 5000;
+    for (var i = 0; i < $scope.flash.length; i++) {
+      var elem = $scope.flash[i];
+      if (elem.time > then) {
+        break;
+      }
+    }
+    if (i >= 1) $scope.flash.splice(0, i);
+  });
+    
   Storage.status || flash('warning', 'Cookies Disabled!',
     'This site uses a method similar to cookies to manage your user session, but cannot because your cookies are disabled!');
 
@@ -470,7 +492,8 @@ app.controller('Flash', ['$scope', '$rootScope', 'Storage',
       info: info,
       message: message,
       'class': ['alert-' + type],
-      dismissable: !!options.dismissable
+      dismissable: !!options.dismissable,
+      time: Date.now()
     };
     options.dismissable && obj['class'].push('alert-dismissable');
     $scope.flash.push(obj);

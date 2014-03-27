@@ -13,12 +13,12 @@ if ($user_admin) {
 	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID`, `IsPublic`, `Title`, `Contents`, `Author`, `ResponseTo`, `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON `PostID`=`UID` WHERE (`RecipientID`=? OR `Author`=?)  GROUP BY `UID` ORDER BY `Date` LIMIT ? , ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` ) WHERE `Instance` = ?";
 	$double_target_id = true;
 } else {
-	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID`, `IsPublic`, `Title`, `Contents`, `Author`, `ResponseTo`, `Date` FROM ( SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON ( `PostID` = `UID` ) WHERE ( `IsPublic` = 1 OR `Author` = ? OR `RecipientID` = ? ) GROUP BY `UID` ORDER BY `Date` ) AS `Base` LEFT JOIN `PostRecipients` ON `PostID`=`UID` WHERE (`RecipientID`=? OR `Author`=?) GROUP BY `UID` LIMIT ? , ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` ) WHERE `Instance` = ?";
+	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID`, `IsPublic`, `Title`, `Contents`, `Author`, `ResponseTo`, `Date` FROM ( SELECT `Instance` , `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON ( `PostID` = `UID` ) WHERE ( `IsPublic` = 1 OR `Author` = ? OR `RecipientID` = ? ) GROUP BY `UID` ORDER BY `Date` ) AS `Base` LEFT JOIN `PostRecipients` ON `PostID`=`UID` WHERE (`RecipientID`=? OR `Author`=?) GROUP BY `UID` LIMIT ? , ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` ) WHERE `Main`.`Instance` = ?";
 	$double_target_id = true;
 }
 $qry = $db->prepare($query_input_text);
 if ($qry === FALSE) {
-	die_error(500, "Server Error: Could not submit body query.");
+	die_error(500, "Server Error: Could not submit body query: " . $db->error);
 }
 if ($user_admin) {
 	if ($double_target_id) {
