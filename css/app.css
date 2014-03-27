@@ -48,15 +48,8 @@ textarea {
   width: 1px;
 }
 
-.media {
-  background-color: #f7f7f7;
-  border: 1px solid #e0e0e0;
-  border-radius: 3px;
-  padding: 5px;
-}
-
-.media-private {
-  background-color: #efefef;
+.panel-private {
+  background-color: #fcf8e3;
 }
 
 .avatar-display-elem {
