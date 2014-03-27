@@ -123,3 +123,18 @@ textarea {
 .avatar-inbox-elem {
   margin-left: 0;
 }
+
+.hover-slave {
+  -webkit-transition: opacity 0.4s;
+  -moz-transition: opacity 0.4s;
+  -o-transition: opacity 0.4s;
+  transition: opacity 0.4s;
+}
+
+.hover-master:not(:hover) > .hover-slave {
+  filter:alpha(opacity=50);
+  -khtml-opacity: 0.5;
+  -webkit-opacity: 0.5;
+  -moz-opacity: 0.5;
+  opacity: 0.5;
+}

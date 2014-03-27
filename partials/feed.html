@@ -26,8 +26,8 @@
         <h4><span class="label label-default">{{msg.date | date:'yyyy-MM-dd HH:mm:ss'}}</span></h4>
       </div>
     </div>
-    <div class="panel-body clearfix">
-      <div class="pull-right" ng-class="access() ? 'btn-group' : ''">
+    <div class="panel-body clearfix hover-master">
+      <div class="pull-right hover-slave" ng-class="access() ? 'btn-group' : ''">
         <a style="margin-left: 5px;" href="./compose/{{msg.id}}" class="btn" ng-class="msg.finish ? 'btn-warning' : 'btn-primary'">Responder</a>
         <button class="btn btn-danger pull-right" ng-click="delete(msg.id)" ng-if="access()">Borrar</button>
       </div>
