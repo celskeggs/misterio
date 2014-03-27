@@ -19,7 +19,6 @@
     <label class="col-sm-2 control-label" for="input-to">Para</label>
     <div class="col-sm-10">
       <ul class="list-inline">
-        <!-- <input type="text" id="input-to" ng-model="message.to" class="form-control"> -->
         <li class="avatar-cell" ng-repeat="user in User.others">
           <div class="avatar-select-elem" ng-class="{'avatar-selected-elem': selected(user.uid)}" ng-click="select(user.uid)">
             <img src="./img/{{user.avatar}}" />
@@ -27,12 +26,18 @@
               <div>{{user.name}}</div>
             </div>
           </div>
-        </li>
-        <li>
-          <div class="avatar-select-elem avatar-locked-elem" ng-class="{'avatar-selected-elem': !message.public}" ng-click="toggle_locked()">
+        </li><li class="avatar-cell ng-scope">
+          <div class="avatar-select-elem avatar-locked-elem" nope="avatar-locked-elem" ng-class="{'avatar-selected-elem': !message.public}" ng-click="toggle_locked()">
             <img src="./img/{{message.public ? 'unlocked.png' : 'locked.png'}}" />
             <div>
               <div>{{message.public ? 'P&uacute;blico' : 'Privado'}}</div>
+            </div>
+          </div>
+        </li><li class="avatar-cell ng-scope">
+          <div class="avatar-select-elem avatar-inbox-elem" ng-class="{'avatar-selected-elem': message.finish}" ng-click="toggle_finish()">
+            <img src="./img/{{message.finish ? 'inbox_0.png' : 'inbox_1.png'}}" />
+            <div>
+              <div>{{message.finish ? 'Finalizar conversaci&oacute;n' : 'Requerir respuesta'}}</div>
             </div>
           </div>
         </li>
@@ -53,7 +58,7 @@
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
       <button type="button" class="btn btn-warning" ng-disabled="SendForm.$pristine &amp;&amp; !dirty" ng-click="reset()">Reinicializar</button>
-      <button type="submit" class="btn btn-success" ng-disabled="SendForm.$invalid">Enviar</button>
+      <button type="submit" class="btn btn-success" ng-disabled="SendForm.$invalid || sending">Enviar</button>
     </div>
   </div>
 </form>

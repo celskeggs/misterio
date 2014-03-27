@@ -26,13 +26,13 @@ h6:first-child {
 }
 
 .user-avatar {
-  width: 50px;
-  height: 50px;
+  width: 100px;
+  height: 100px;
 }
 
 .user-avatar-small {
-  width: 25px;
-  height: 25px;
+  width: 50px;
+  height: 50px;
 }
 
 a {
@@ -111,8 +111,15 @@ textarea {
   border: 1px solid #111;
   border-radius: 5px;
   color: white;
+  margin-left: 8px;
+  margin-right: 8px;
 }
 
 .avatar-locked-elem {
-  margin-left: 60px;
+  margin-left: 64px;
+  margin-right: 0px;
+}
+
+.avatar-inbox-elem {
+  margin-left: 0;
 }

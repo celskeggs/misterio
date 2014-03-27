@@ -23,10 +23,10 @@
         <div class="media-body">
           <div style="width: 190px;" class="pull-right">
             <h4><span style="margin-bottom: 5px;" class="label label-default pull-right">{{msg.date | date:'yyyy-MM-dd HH:mm:ss'}}</span></h4>
-            <a style="margin-left: 5px;" href="./compose/{{msg.id}}" class="pull-right btn btn-primary">Responder</a>
+            <a style="margin-left: 5px;" href="./compose/{{msg.id}}" class="pull-right btn" ng-class="msg.finish ? 'btn-warning' : 'btn-primary'">Responder</a>
             <button class="btn btn-danger pull-right" ng-click="delete(msg.id)" ng-if="access()">Borrar</button>
           </div>
-          <h4>{{msg.title}} &nbsp; <small>{{user(msg.from).name}} &rarr; <span ng-if="!(msg.to &amp;&amp; msg.to.length)">{{msg.public ? "Todos" : "Nadie"}}</span> <span ng-if="msg.to &amp;&amp; msg.to.length"><span ng-repeat="target in msg.to">{{user(target).name}} &nbsp;</span></span><span ng-if="!msg.public">(Privado)</span></small></h4>
+          <h4>{{msg.title}} &nbsp; <small>{{user(msg.from).name}} &rarr; <span ng-if="!(msg.to &amp;&amp; msg.to.length)">{{msg.public ? "Todos" : "Nadie"}}</span> <span ng-if="msg.to &amp;&amp; msg.to.length"><span ng-repeat="target in msg.to">{{user(target).name}} &nbsp;</span></span><span ng-if="!msg.public">(Privado)</span> <span ng-if="msg.finish">(Finalizado)</span></small></h4>
           <p ng-repeat="block in blocks(msg.data)">{{block}}</p>
         </div>
       </div>
