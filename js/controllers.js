@@ -181,6 +181,7 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
     $scope.message = {
       public: true, to: [], finish: false
     };
+    $scope.state.write = true;
     $scope.dirty = 0;
     $scope.SendForm.$setPristine();
   };
