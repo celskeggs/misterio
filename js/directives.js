@@ -62,3 +62,16 @@ app.directive('inboxCounter', function($interval, User) {
     });
   }
 });
+
+app.directive('markdownPreview', function() {
+  return function(scope, element, attrs) {
+    var update = _.throttle(function update(text) {
+      typeof marked === 'function' && $(element).html(marked(text));
+    }, 500);
+    /*function update(text) {
+      $(element).is(':visible') && trigger(text);
+    }*/
+    scope.$watch(attrs.markdownPreview, update);
+    update(scope.$eval(attrs.markdownPreview));
+  };
+});

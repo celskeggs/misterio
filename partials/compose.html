@@ -45,10 +45,21 @@
       <input type="text" id="input-title" ng-model="message.title" class="form-control" required>
     </div>
   </div>
-  <div class="form-group">
+  <div class="row">
+    <div class="col-sm-offset-2 col-sm-10">
+      <ul class="nav nav-tabs">
+        <li ng-click="state.write = false" class="active"><a>Write</a></li>
+        <li ng-click="state.write = true"><a>Preview</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="form-group" ng-show="state.write">
     <div class="col-sm-offset-2 col-sm-10">
       <textarea class="form-control" rows="15" ng-model="message.data" required></textarea>
     </div>
+  </div>
+  <div class="row" ng-if="!state.write">
+    <div class="col-sm-offset-2 col-sm-10" markdown-preview="message.data"></div>
   </div>
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">

@@ -129,6 +129,10 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
     $scope.dirty && ($scope.dirty--);
   }, 100));
 
+  $scope.state = {
+    write: true
+  };
+
   $scope.user = function(uid) {
     return User.userLookup[uid];
   };
