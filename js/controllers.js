@@ -268,8 +268,14 @@ app.controller('Users', ['$scope', '$location', 'User',
   $scope.state = {editing: -1, adding: false};
   $scope.editUser = null;
 
+  $scope.showCredits = false;
+
   $scope.User = User;
   $scope.destroying = 0;
+
+  $scope.toggleCredits = function() {
+    $scope.showCredits = !$scope.showCredits;
+  };
 
   $scope.destroy = function(n) {
     if (n === "real") {
