@@ -27,7 +27,7 @@
             <button class="btn btn-danger pull-right" ng-click="delete(msg.id)" ng-if="access()">Borrar</button>
           </div>
           <h4>{{msg.title}} &nbsp; <small>{{user(msg.from).name}} &rarr; <span ng-if="!(msg.to &amp;&amp; msg.to.length)">{{msg.public ? "Todos" : "Nadie"}}</span> <span ng-if="msg.to &amp;&amp; msg.to.length"><span ng-repeat="target in msg.to">{{user(target).name}} &nbsp;</span></span><span ng-if="!msg.public">(Privado)</span> <span ng-if="msg.finish">(Finalizado)</span></small></h4>
-          <p ng-repeat="block in blocks(msg.data)">{{block}}</p>
+          <div markdown-preview="msg.data"></div>
         </div>
       </div>
     </div>

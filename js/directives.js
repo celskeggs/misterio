@@ -69,6 +69,9 @@ app.directive('markdownPreview', function() {
       var html = (typeof marked === 'function' && text) ? marked(text) : '';
       $(element).html(html);
     }, 500);
+    /*function update(text) {
+      $(element).is(':visible') && trigger(text);
+    }*/
     scope.$watch(attrs.markdownPreview, update);
     update(scope.$eval(attrs.markdownPreview));
   };
