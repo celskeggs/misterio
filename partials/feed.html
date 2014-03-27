@@ -15,8 +15,8 @@
 
 <div ng-if="!messages.length">No hay mesajes.</div>
 
-<div class="row" ng-repeat="msg in messages" ng-class="msg.public ? '' : 'media-private'">
-  <a href="./users/{{msg.from}}">
+<div class="row show-master" ng-repeat="msg in messages" ng-class="msg.public ? '' : 'media-private'">
+  <a class="show-slave" href="./users/{{msg.from}}">
     <img class="user-avatar" src="{{'./img/' + user(msg.from).avatar}}" alt="{{user(msg.from).name}}">
   </a>
   <div class="panel panel-default">

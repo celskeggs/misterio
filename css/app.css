@@ -138,3 +138,15 @@ textarea {
   -moz-opacity: 0.5;
   opacity: 0.5;
 }
+
+.show-slave {
+  -webkit-transition: height 0.4s;
+  -moz-transition: height 0.4s;
+  -o-transition: height 0.4s;
+  transition: height 0.4s;
+  overflow: hidden;
+}
+
+.show-master:not(:hover) > .show-slave {
+  height: 50px;
+}
