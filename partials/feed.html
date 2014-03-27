@@ -13,7 +13,7 @@
   <li ng-class="canPrev() ? '' : 'disabled'" class="next"><a href="#" ng-click="prev()">M&aacute;s reciente &rarr;</a></li>
 </ul>
 
-<div ng-if="!messages.length">No hay mesajes.</div>
+<div class="alert alert-info" ng-if="!messages.length">No hay mesajes.</div>
 
 <div class="media" ng-repeat="msg in messages">
   <a class="pull-left" href="./users/{{msg.from}}">
