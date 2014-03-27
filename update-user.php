@@ -37,9 +37,9 @@ if ($qry === FALSE || !$qry->bind_param("sssisi", $new_token, $new_email, $new_n
 	die_error(500, "Server Error: Could not submit body query.");
 }
 if ($old_email !== NULL && $old_email !== "" && $old_email !== $new_email) {
-	mail($old_email, "Tu cuenta del Misterio en $City es borrada", "Tu cuenta del Misterio en $City es borrada ahora.\n");
+	mail($old_email, "Tu cuenta del Misterio en $City es borrada", "Tu cuenta del Misterio en $City es borrada ahora.\n", "From: $config_email_sender\r\n");
 }
 if ($new_email !== NULL && $old_email !== $new_email) {
-	mail($new_email, "Tienes una cuenta del Misterio en $City!", "Hola!\nAhora, tú tienes una cuenta del Misterio en " . $City . "\nPuedes entrar con este enlace: " . $config_base_url . $new_token . "\n");
+	mail($new_email, "Tienes una cuenta del Misterio en $City!", "Hola!\nAhora, tú tienes una cuenta del Misterio en " . $City . "\nPuedes entrar con este enlace: " . $config_base_url . $new_token . "\n", "From: $config_email_sender\r\n");
 }
 echo json_encode(array());

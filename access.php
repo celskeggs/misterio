@@ -1,6 +1,7 @@
 <?php
 // ini_set('display_errors', 1);
 $config_base_url = "http://cgscomwww.catlin.edu/spanish/misterio/token/";
+$config_email_sender = "skeggsc@catlin.edu";
 $City = "Toluca";
 function die_error($code, $message) {
 	// http_response_code($code);

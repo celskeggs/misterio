@@ -26,5 +26,5 @@ $qry = $db->prepare("UPDATE `Players` SET `Token` = ? WHERE `UID` = ?");
 if ($qry === FALSE || !$qry->bind_param("si", $new_token, $target_id) || !$qry->execute() || !$qry->close()) {
 	die_error(500, "Server Error: Could not submit body query.");
 }
-mail($new_email, "Tu cuenta del Misterio en $City", "Tu cuenta del Misterio en $City tiene un enlace nuevo para entrar: " . $config_base_url . $new_token . "\n");
+mail($new_email, "Tu cuenta del Misterio en $City", "Tu cuenta del Misterio en $City tiene un enlace nuevo para entrar: " . $config_base_url . $new_token . "\n", "From: $config_email_sender\r\n");
 echo json_encode(array());

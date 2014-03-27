@@ -1,4 +1,4 @@
-<h1>Personajes<button type="button" class="btn btn-success pull-right" ng-click="add()" ng-if="access()">+ Nueva Persona</button></h1>
+<h1>Personajes<button type="button" class="btn btn-success pull-right" ng-click="add()" ng-if="access()" ng-disabled="state.editing !== -1">+ Nueva Persona</button></h1>
 
 <p>Hay {{User.others.length}} personajes que puedes ver ahora. Est&aacute;s en instancia {{User.user.instance}}. Solamente puedes ver personajes en esta instancia.</p>
 
@@ -69,6 +69,7 @@
     <li class="avatar-display-elem" ng-repeat="avatar in avatars">
       <img class="user-avatar" src="./img/{{avatar}}">
       {{avatar}}
+      <button type="button" ng-click="selectAvatar(avatar)" ng-if="access() && (state.editing &gt;= 0 || state.adding)" class="btn btn-default">Select</button>
     </li>
   </ul>
 

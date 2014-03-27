@@ -315,6 +315,13 @@ app.controller('Users', ['$scope', '$location', 'User',
     return s.adding || ~s.editing || (del && u.uid === m);
   };
 
+  $scope.selectAvatar = function(avatar) {
+    $scope.editUser.avatar = avatar;
+    if (!$scope.editUser.name) {
+      $scope.editUser.name = avatar.replace(/_/g, " ").split(".")[0].split(" ").map(function(f){return f.substr(0, 1).toUpperCase() + f.substr(1).toLowerCase()}).join(" ");
+    }
+  };
+
   $scope.add = function() {
     $scope.state.adding = true;
     $scope.editUser = {'access': false, 'email': null};

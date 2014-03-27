@@ -28,6 +28,6 @@ if (!is_int($new_id) || $new_id <= 0) {
 	die_error(500, "Server Error: Index assertion failed.");
 }
 if ($new_email !== null) {
-	mail($new_email, "Tienes una cuenta del Misterio en $City!", "Hola!\nAhora, tú tienes una cuenta del Misterio en $City.\nPuedes entrar con este enlace: " . $config_base_url . $new_token . "\n");
+	mail($new_email, "Tienes una cuenta del Misterio en $City!", "Hola!\nAhora, tú tienes una cuenta del Misterio en $City.\nPuedes entrar con este enlace: " . $config_base_url . $new_token . "\n", "From: $config_email_sender\r\n");
 }
 echo json_encode(array('uid' => $new_id));

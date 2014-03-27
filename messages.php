@@ -23,7 +23,7 @@ if ($is_inbox) {
 } else if ($is_count) {
 	$query_count_text = $query_inbox_count;
 } else if ($user_admin) { // Show all posts to the administrator
-	$query_input_text = "SELECT `UID` , `IsPublic` , `IsFinish` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID` , `IsPublic` , `IsFinish` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` WHERE ? = ? GROUP BY `UID` ORDER BY `Date` DESC ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` ) WHERE `Instance` = ? LIMIT ?, ?";
+	$query_input_text = "SELECT `UID` , `IsPublic` , `IsFinish` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID` , `IsPublic` , `IsFinish` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` WHERE ? = ? AND `Instance` = ? GROUP BY `UID` ORDER BY `Date` DESC LIMIT ?, ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` )";
 	$query_count_text = "SELECT COUNT(`UID`) FROM `Posts` WHERE `Instance`=? OR ? = ? OR 1 = 1";
 	// ? = ? clause added so that I can use the same parameter binding for all three queries
 } else {
