@@ -73,8 +73,22 @@
     </li>
   </ul>
 
+  <div ng-if="showCredits">
+    This system was developed by Colby Skeggs, with some programming &amp; interface help from Eli Skeggs.<br>
+    The idea for an upgraded system is thanks to Casey Currey-Wilson.<br>
+    Thanks to Roberto Villa for teaching the Spanish III class and pushing for this system to be built.<br>
+    We also appreciate the miscellaneous testers who helped make sure the system worked before it crashed head-first into production.<br>
+    The avatars were derived from <a href="http://kubbypan.deviantart.com/art/Kubby-s-sprite-base-401451067">Kubbypan's talksprite bases</a> by Colby Skeggs.<br>
+    <br>
+    The original version was created by Terri Nelson and Walter Oliver from California State University, San Bernardino, in 1997.<br>
+  </div>
+
+  <button type="button" class="btn btn-primary" ng-click="toggleCredits()">Credits</button>
+
   <button type="button" class="btn btn-danger" ng-if="access()" ng-click="destroy(1)">Destruir todos mensajes</button>
   <button type="button" class="btn btn-danger" ng-if="destroying &gt;= 1" ng-click="destroy(2)">&#173;Este va a borrar todos los mensajes!</button>
   <button type="button" class="btn btn-danger" ng-if="destroying &gt;= 2" ng-click="destroy(3)">All messages will be eliminated!</button>
   <button type="button" class="btn btn-danger" ng-if="destroying &gt;= 3" ng-click="destroy('real')">You might be making a mistake! Are you sure?</button>
+
+  <div style="margin-bottom: 100px;"> </div>
 </form>
