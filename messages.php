@@ -27,7 +27,7 @@ if ($is_inbox) {
 	$query_count_text = "SELECT COUNT(`UID`) FROM `Posts` WHERE `Instance`=? OR ? = ? OR 1 = 1";
 	// ? = ? clause added so that I can use the same parameter binding for all three queries
 } else {
-	$query_input_text = "SELECT `UID` , `IsPublic` , `IsFinish` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID` , `IsPublic` , `IsFinish` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON ( `PostID` = `UID` ) WHERE ( `IsPublic` = 1 OR `Author` = ? OR `RecipientID` = ? ) GROUP BY `UID` ORDER BY `Date` DESC ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` ) WHERE `Instance` = ? LIMIT ?, ?";
+	$query_input_text = "SELECT `UID` , `IsPublic` , `IsFinish` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID` , `IsPublic` , `IsFinish` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON ( `PostID` = `UID` ) WHERE ( `IsPublic` = 1 OR `Author` = ? OR `RecipientID` = ? ) AND `Instance` = ? GROUP BY `UID` ORDER BY `Date` DESC LIMIT ?, ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` )";
 	$query_count_text = "SELECT COUNT(`UID`) FROM (SELECT DISTINCT `UID` FROM `Posts` LEFT JOIN `PostRecipients` ON ( `PostID` = `UID` ) WHERE `Instance` = ? AND ( `IsPublic` = 1 OR `Author` = ? OR `RecipientID` = ? )) as `Main`";
 }
 $qry_count = $db->prepare($query_count_text);
