@@ -22,6 +22,11 @@ if ($is_inbox) {
 	// RecipientID clause duplicated so that I can use the same parameter binding for all three queries
 } else if ($is_count) {
 	$query_count_text = $query_inbox_count;
+	if ($user_admin) {
+		$query_feed_count = "SELECT COUNT(`UID`) FROM `Posts` WHERE `Instance` = ? AND ? = ? GROUP BY `UID`";
+	} else {
+		$query_feed_count = "SELECT COUNT(`UID`) FROM `Posts` LEFT JOIN `PostRecipients` ON ( `PostID` = `UID` ) WHERE ( `IsPublic` = 1 OR `Author` = ? OR `RecipientID` = ? ) AND `Instance` = ? GROUP BY `UID`";
+	}
 } else if ($user_admin) { // Show all posts to the administrator
 	$query_input_text = "SELECT `UID` , `IsPublic` , `IsFinish` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID` , `IsPublic` , `IsFinish` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` WHERE ? = ? AND `Instance` = ? GROUP BY `UID` ORDER BY `Date` DESC LIMIT ?, ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` )";
 	$query_count_text = "SELECT COUNT(`UID`) FROM `Posts` WHERE `Instance`=? OR ? = ? OR 1 = 1";
@@ -39,7 +44,15 @@ if (!$qry_count->close()) {
 	die_error(500, "Server Error: Could not finish count query.");
 }
 if ($is_count) {
-	echo json_encode(array('inbox' => $post_total));
+	$qry_count = $db->prepare($query_feed_count);
+	if ($qry_count === FALSE || !$qry_count->bind_param("iii", $user_instance, $user_uid, $user_uid) || !$qry_count->execute() || !$qry_count->bind_result($query_count_count) || !$qry_count->fetch()) {
+		die_error(500, "Server Error: Could not submit count2 query.");
+	}
+	$post_all_total = $query_count_count;
+	if (!$qry_count->close()) {
+		die_error(500, "Server Error: Could not finish count2 query.");
+	}
+	echo json_encode(array('inbox' => $post_total, 'msgs' => $post_all_total));
 	exit;
 }
 $qry = $db->prepare($query_input_text);
