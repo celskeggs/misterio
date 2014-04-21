@@ -42,6 +42,8 @@
           </div>
         </li>
       </ul>
+      <span ng-if="message.finish">(This message will not require a reply from the recipient.)</span>
+      <span ng-if="!message.public">(This message will be private. Usually this is bad!)</span>
     </div>
   </div>
   <div class="form-group">

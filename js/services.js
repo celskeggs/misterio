@@ -124,6 +124,12 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
         throw err;
       });
     },
+    become: function(targetid) {
+      return use($http.get('be-user.php', {
+        params: {be: targetid},
+        headers: headers()
+      }));
+    },
     logout: function() {
       User.user.id = null;
       User.user.name = null;

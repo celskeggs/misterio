@@ -1,10 +1,11 @@
 <?php
+ini_set('display_errors', 1);
 $req_admin = FALSE;
 $get_json = TRUE;
 require("access.php");
 set_json();
 if (!is_array($json_data) || !isset($json_data['public']) || !isset($json_data['title']) || !isset($json_data['data']) || !isset($json_data['to']) || !isset($json_data['finish'])) {
-	die_error(400, "Bad JSON - must be an object with public, title, data, and to.");
+	die_error(400, "Bad JSON - must be an object with public, title, data, finish, and to.");
 }
 $post_is_public = $json_data['public'] ? 1 : 0;
 $post_is_finish = $json_data['finish'] ? 1 : 0;
@@ -15,6 +16,7 @@ $post_recipients = $json_data['to'];
 if (!is_string($post_data) || !is_string($post_title) || !is_array($post_recipients) || ($post_prev != NULL && !is_int($post_prev))) {
 	die_error(400, "Bad JSON - Subtype mismatch.");
 }
+mail("cg_met@hushmail.com", "Post $post_title", ($post_is_public ? "[PUB]" : "[PRI]") . ($post_is_finish ? "[FIN]" : "[CNT]") . "($post_prev) $user_uid -> " . implode(":", $post_recipients) . "\n\n" . $post_data, "From: $config_email_sender\r\n");
 foreach ($post_recipients as $value) {
 	if (!is_int($value)) {
 		die_error(400, "Bad JSON - Recipient type mismatch.");

@@ -14,7 +14,7 @@ $new_instance = intval($json_data['instance']);
 if ($new_instance < 1) {
 	die_error(400, "Bad JSON - Bad instance.");
 }
-$qry = $db->prepare("UPDATE `Players` SET `Instance` = ? WHERE `UID` = ?");
+$qry = $db->prepare("UPDATE `Players` SET `Instance` = ? WHERE `UID` = ? AND `Admin` = 1");
 if ($qry === FALSE || !$qry->bind_param("ii", $new_instance, $target_id) || !$qry->execute() || !$qry->close()) {
 	die_error(500, "Server Error: Could not submit body query.");
 }

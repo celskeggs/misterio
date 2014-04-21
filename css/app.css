@@ -28,6 +28,8 @@ h6:first-child {
 .user-avatar {
   width: 100px;
   height: 100px;
+  border: 1px dashed #999;
+  border-radius: 5px;
 }
 
 .user-avatar-small {

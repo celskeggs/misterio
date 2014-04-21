@@ -17,7 +17,17 @@ app.controller('Feed', ['$scope', '$location', 'User',
     $scope.messages = [];
     User.messages.all($scope.offset, $scope.limit)
       .then(function(data) {
-      $scope.messages = data.data;
+      $scope.messages = [];
+      for (var i=0; i<data.data.length; i++) {
+        var d = data.data[i];
+        if (d.prev && !d.prevobj) {
+          User.messages.get(d.prev).then(function (po) {
+            console.log(this, po);
+            this.prevobj = po;
+          }.bind(d));
+        }
+        $scope.messages.push(d);
+      }
       $scope.total = data.total;
     });
   };
@@ -251,7 +261,7 @@ app.controller('Broadcast', ['$scope', '$location', '$routeParams', 'User',
       var uid = sections[0], title = sections[1], contents = sections[2];
       title = title.replace(/^[ \t\n]+|[ \t\n]+$/g, ""); // Trim string of whitespace.
       contents = contents.replace(/^[ \t\n]+|[ \t\n]+$/g, "");
-      messages.push({"title": title, "data": contents, "public": false, "to": [parseInt(uid)]});
+      messages.push({"title": title, "data": contents, "public": false, "finish": true, "to": [parseInt(uid)]});
     }
     for (var mid in messages) {
       var message = messages[mid];
@@ -287,6 +297,12 @@ app.controller('Users', ['$scope', '$location', 'User',
     } else {
       $scope.destroying = n;
     }
+  };
+
+  $scope.be = function(uid) {
+    User.become(uid).then(function(data) {
+      $location.path('/token/' + data.target);
+    });
   };
 
   $scope.avatars = [];
@@ -344,6 +360,14 @@ app.controller('Users', ['$scope', '$location', 'User',
       } else {
         $scope.editUser[key] = other[key];
       }
+    }
+  };
+
+  $scope.reset = function(index) {
+    if (!User.user.access) return;
+    var user = User.others[index];
+    if (confirm('Are you sure you wish to resend the email for ' + user.name + '?')) {
+      User.users.reset(user.uid);
     }
   };
 

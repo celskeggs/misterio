@@ -10,10 +10,10 @@ $posts_offset = intval($_GET['offset']);
 $posts_limit = intval($_GET['limit']);
 $poster_uid = intval($_GET['uid']);
 if ($user_admin) {
-	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID`, `IsPublic`, `Title`, `Contents`, `Author`, `ResponseTo`, `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON `PostID`=`UID` WHERE (`RecipientID`=? OR `Author`=?)  GROUP BY `UID` ORDER BY `Date` LIMIT ? , ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` ) WHERE `Instance` = ?";
+	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID`, `IsPublic`, `Title`, `Contents`, `Author`, `ResponseTo`, `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON `PostID`=`UID` WHERE (`RecipientID`=? OR `Author`=?)  GROUP BY `UID` ORDER BY `Date` DESC LIMIT ? , ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` ) WHERE `Instance` = ?";
 	$double_target_id = true;
 } else {
-	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID`, `IsPublic`, `Title`, `Contents`, `Author`, `ResponseTo`, `Date` FROM ( SELECT `Instance` , `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON ( `PostID` = `UID` ) WHERE ( `IsPublic` = 1 OR `Author` = ? OR `RecipientID` = ? ) GROUP BY `UID` ORDER BY `Date` ) AS `Base` LEFT JOIN `PostRecipients` ON `PostID`=`UID` WHERE (`RecipientID`=? OR `Author`=?) GROUP BY `UID` LIMIT ? , ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` ) WHERE `Main`.`Instance` = ?";
+	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID`, `IsPublic`, `Title`, `Contents`, `Author`, `ResponseTo`, `Date` FROM ( SELECT `Instance` , `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON ( `PostID` = `UID` ) WHERE ( `IsPublic` = 1 OR `Author` = ? OR `RecipientID` = ? ) GROUP BY `UID` ORDER BY `Date` DESC ) AS `Base` LEFT JOIN `PostRecipients` ON `PostID`=`UID` WHERE (`RecipientID`=? OR `Author`=?) GROUP BY `UID` ORDER BY `Date` DESC LIMIT ? , ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` ) WHERE `Main`.`Instance` = ?";
 	$double_target_id = true;
 }
 $qry = $db->prepare($query_input_text);

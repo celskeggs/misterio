@@ -48,6 +48,7 @@
           <button ng-disabled="disabled($index)" ng-hide="state.editing === $index" type="button" class="btn btn-success" ng-click="edit($index)">Editar</button><button style="margin-left: 8px;" ng-disabled="disabled($index, true)" ng-hide="state.editing === $index" type="button" class="btn btn-danger" ng-click="delete($index)">Borrar</button>
           <button ng-if="state.editing === $index" type="submit" class="btn btn-primary" ng-disabled="EditForm.$invalid">Save</button>
           <button ng-if="state.editing === $index" type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
+          <button ng-hide="state.editing === $index" type="button" class="btn btn-danger" ng-click="be(user.uid)">Ser</button>
         </td>
       </tr>
       <tr ng-if="access() &amp;&amp; state.adding">

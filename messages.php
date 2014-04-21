@@ -16,7 +16,7 @@ $posts_offset = intval($_GET['offset']);
 $posts_limit = intval($_GET['limit']);
 $query_inbox_count = "SELECT COUNT(`UID`) FROM `Posts`,`PostRecipients` WHERE `Posts`.`Instance`=? AND `Posts`.`IsFinish` = 0 AND `PostID`=`UID` AND `RecipientID`=? AND `RecipientID`=? AND `UID` NOT IN (SELECT `ResponseTo` FROM `Posts` WHERE `ResponseTo` IS NOT NULL GROUP BY `ResponseTo`)";
 if ($is_inbox) {
-	$query_input_text = "SELECT `UID` , `IsPublic` , `IsFinish` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID` , `IsPublic` , `IsFinish` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts`,`PostRecipients` WHERE `PostID`=`UID` AND `RecipientID`=? AND `RecipientID`=? AND `UID` NOT IN (SELECT `ResponseTo` FROM `Posts` WHERE `ResponseTo` IS NOT NULL GROUP BY `ResponseTo`) GROUP BY `PostID` ORDER BY `Date` DESC LIMIT ?, ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` ) WHERE `Instance` = ? AND `IsFinish` = 0";
+	$query_input_text = "SELECT `UID` , `IsPublic` , `IsFinish` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID` , `IsPublic` , `IsFinish` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts`,`PostRecipients` WHERE `PostID`=`UID` AND `RecipientID`=? AND `RecipientID`=? AND `UID` NOT IN (SELECT `ResponseTo` FROM `Posts` WHERE `ResponseTo` IS NOT NULL GROUP BY `ResponseTo`) AND `Instance` = ? AND `IsFinish` = 0 GROUP BY `PostID` ORDER BY `Date` DESC LIMIT ?, ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` )";
 	$query_count_text = $query_inbox_count;
 	// TODO: Check that query!
 	// RecipientID clause duplicated so that I can use the same parameter binding for all three queries
