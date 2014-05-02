@@ -111,6 +111,12 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
       session: null,
       instance: null
     },
+    inboxes: function() {
+      return use($http.get('get-counts.php', {
+        params: {},
+        headers: headers()
+      }));
+    },
     others: [],
     userLookup: {}, // hmmm
     login: function(session) {

@@ -10,6 +10,8 @@ app.controller('Feed', ['$scope', '$location', 'User',
     return User.userLookup[id];
   };
 
+  $scope.linkurl = "/";
+
   $scope.total = 0;
   $scope.offset = 0;
   $scope.limit = 10;
@@ -22,7 +24,6 @@ app.controller('Feed', ['$scope', '$location', 'User',
         var d = data.data[i];
         if (d.prev && !d.prevobj) {
           User.messages.get(d.prev).then(function (po) {
-            console.log(this, po);
             this.prevobj = po;
           }.bind(d));
         }
@@ -76,6 +77,8 @@ app.controller('Inbox', ['$scope', '$location', 'User',
   $scope.user = function(id) {
     return User.userLookup[id];
   };
+
+  $scope.linkurl = "/inbox";
 
   $scope.total = 0;
   $scope.offset = 0;
@@ -396,6 +399,14 @@ app.controller('Users', ['$scope', '$location', 'User',
     $scope.cancel();
   };
 
+  $scope.printout = null;
+
+  $scope.inboxPrintout = function() {
+    User.inboxes().then(function(data) {
+      $scope.printout = data;
+    });
+  };
+
   $scope.cancel = function() {
     if (!User.user.access) return;
     $scope.state.adding = false;
@@ -421,7 +432,7 @@ app.controller('Profile', ['$scope', '$location', '$routeParams', 'User',
     return User.userLookup[id];
   };
 
-  $scope.totalFrom = null;
+  $scope.linkurl = "/users/" + uid;
 
   $scope.total = 0;
   $scope.offset = 0;
@@ -432,7 +443,7 @@ app.controller('Profile', ['$scope', '$location', '$routeParams', 'User',
       .then(function(data) {
       $scope.messages = data.data;
       $scope.total = data.total;
-      $scope.totalFrom = data.from;
+      console.log($scope.canNext() + " / " + $scope.canPrev() + " / " + data.total);
     });
   };
 
@@ -499,7 +510,6 @@ app.controller('Flash', ['$scope', '$rootScope', 'Storage',
     function Flash($scope, $rootScope, Storage) {
   $scope.flash = [];
   $rootScope.$on('apiError', function(e, status, message) {
-    console.log(arguments);
     var type;
     if (status >= 400 && status < 500) {
       type = 'App Error!';

@@ -41,6 +41,6 @@ if (!$qry->close()) {
 	die_error(500, "Server Error: Could not finish body query.");
 }
 if (count($posts) !== 1) {
-	die_error(500, "Server Error: Post count assertion failed.");
+	die_error(500, "Server Error: Message no longer exists!");
 }
 echo json_encode($posts[0]);

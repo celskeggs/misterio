@@ -75,11 +75,17 @@ app.run(function($rootScope, $location, User) {
     }
   });
 
-  //$rootScope.$on('$routeChangeSuccess', function(event, 
-
   $rootScope.onShouldUpdateInbox = function(call) { // I don't know what I'm doing.
     $rootScope.$on('$routeChangeStart', function(event, next, current) {
       call();
+    });
+  };
+
+  $rootScope.onShouldClearFeed = function(call) { // I don't know what I'm doing.
+    $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
+      if (next.originalPath == "/") {
+        call();
+      }
     });
   };
 

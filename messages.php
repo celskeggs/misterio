@@ -23,9 +23,9 @@ if ($is_inbox) {
 } else if ($is_count) {
 	$query_count_text = $query_inbox_count;
 	if ($user_admin) {
-		$query_feed_count = "SELECT COUNT(`UID`) FROM `Posts` WHERE `Instance` = ? AND ? = ? GROUP BY `UID`";
+		$query_feed_count = "SELECT COUNT(`UID`) FROM `Posts` WHERE ? = ? AND `Instance` = ?";
 	} else {
-		$query_feed_count = "SELECT COUNT(`UID`) FROM `Posts` LEFT JOIN `PostRecipients` ON ( `PostID` = `UID` ) WHERE ( `IsPublic` = 1 OR `Author` = ? OR `RecipientID` = ? ) AND `Instance` = ? GROUP BY `UID`";
+		$query_feed_count = "SELECT COUNT(`UID`) FROM (SELECT `UID` FROM `Posts` LEFT JOIN `PostRecipients` ON ( `PostID` = `UID` ) WHERE ( `IsPublic` = 1 OR `Author` = ? OR `RecipientID` = ? ) AND `Instance` = ? GROUP BY `UID`) AS `Inner`";
 	}
 } else if ($user_admin) { // Show all posts to the administrator
 	$query_input_text = "SELECT `UID` , `IsPublic` , `IsFinish` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID` , `IsPublic` , `IsFinish` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` WHERE ? = ? AND `Instance` = ? GROUP BY `UID` ORDER BY `Date` DESC LIMIT ?, ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` )";
@@ -44,14 +44,21 @@ if (!$qry_count->close()) {
 	die_error(500, "Server Error: Could not finish count query.");
 }
 if ($is_count) {
+	$post_all_total = 0;
 	$qry_count = $db->prepare($query_feed_count);
-	if ($qry_count === FALSE || !$qry_count->bind_param("iii", $user_instance, $user_uid, $user_uid) || !$qry_count->execute() || !$qry_count->bind_result($query_count_count) || !$qry_count->fetch()) {
-		die_error(500, "Server Error: Could not submit count2 query.");
+	if ($qry_count === FALSE) {
+		die_error(500, "Server Error: Count2 invalid!");
+        }
+	if (!$qry_count->bind_param("iii", $user_uid, $user_uid, $user_instance) || !$qry_count->execute() || !$qry_count->bind_result($query_count_count)) {
+		die_error(500, "Server Error: Could not submit count2 query: " . $db->error . "(" . $db->errno . ")");
+	}
+	if (!$qry_count->fetch()) {
+		die_error(500, "Server Error: Count2 no result.");
 	}
 	$post_all_total = $query_count_count;
 	if (!$qry_count->close()) {
 		die_error(500, "Server Error: Could not finish count2 query.");
-	}
+	}/**/
 	echo json_encode(array('inbox' => $post_total, 'msgs' => $post_all_total));
 	exit;
 }

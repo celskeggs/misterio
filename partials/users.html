@@ -91,5 +91,15 @@
   <button type="button" class="btn btn-danger" ng-if="destroying &gt;= 2" ng-click="destroy(3)">All messages will be eliminated!</button>
   <button type="button" class="btn btn-danger" ng-if="destroying &gt;= 3" ng-click="destroy('real')">You might be making a mistake! Are you sure?</button>
 
+  <button type="button" class="btn btn-success" ng-if="access()" ng-click="inboxPrintout()">Show User Inboxes</button>
+  <table ng-if="printout">
+    <thead>
+      <tr><td>Name</td><td>Instance</td><td>Email</td><td>Inbox</td></tr>
+    </thead>
+    <tbody>
+      <tr ng-repeat="elem in printout"><td>{{elem.uid}}</td><td>{{elem.inst}}</td><td>{{elem.email}}</td><td>{{elem.count}}</td></tr>
+    </tbody>
+  </table>
+
   <div style="margin-bottom: 100px;"> </div>
 </form>

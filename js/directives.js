@@ -45,7 +45,6 @@ app.directive('inboxCounter', function($interval, User) {
   return function(scope, element, attrs) {
     var stopUpdate;
     function updateCount() {
-      console.log("update");
       if (User.user.id === null) {
         element.text("");
       } else {
@@ -56,7 +55,33 @@ app.directive('inboxCounter', function($interval, User) {
     }
     scope.onShouldUpdateInbox(updateCount);
     updateCount();
-    stopUpdate = $interval(updateCount, 30000);
+    stopUpdate = $interval(updateCount, 10000);
+    element.bind('$destroy', function() {
+      $interval.cancel(stopUpdate);
+    });
+  }
+});
+
+app.directive('feedCounter', function($interval, User) {
+  return function(scope, element, attrs) {
+    var stopUpdate;
+    element.base = -1000;
+    function updateCount() {
+      if (User.user.id === null) {
+        element.text("");
+      } else {
+        User.messages.inboxCount().then(function (data) {
+          var cnt = data.msgs - element.base;
+          element.text(cnt ? cnt : "");
+        });
+      }
+    }
+    scope.onShouldUpdateInbox(updateCount);
+    var cfeed = function() { User.messages.inboxCount().then(function(data) { element.base = data.msgs; }); updateCount(); };
+    cfeed();
+    scope.onShouldClearFeed(cfeed);
+    updateCount();
+    stopUpdate = $interval(updateCount, 10000);
     element.bind('$destroy', function() {
       $interval.cancel(stopUpdate);
     });

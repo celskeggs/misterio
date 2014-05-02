@@ -4,7 +4,7 @@
       <img class="media-object user-avatar" ng-src="{{'./img/' + user(prev.from).avatar}}" alt="{{user(prev.from).name}}">
     </a>
     <div class="media-body">
-      <h4>{{prev.title}} <small ng-if="prev.to &amp;&amp; prev.to.length">&rarr; <span ng-repeat="target in prev.to">{{user(target).name}}</span></small> <span class="label label-default pull-right">{{prev.date | date:'short'}}</span></h4>
+      <h4>{{prev.title}} &nbsp; <small>{{user(prev.from).name}}</small> <small ng-if="prev.to &amp;&amp; prev.to.length">&rarr; <span ng-repeat="target in prev.to">{{user(target).name}}</span></small> <span class="label label-default pull-right">{{prev.date | date:'short'}}</span></h4>
       <p ng-repeat="block in blocks(prev.data)">{{block}}</p>
     </div>
   </div>
@@ -42,7 +42,7 @@
           </div>
         </li>
       </ul>
-      <span ng-if="message.finish">(This message will not require a reply from the recipient.)</span>
+      <span ng-if="!message.finish">(This message will require a reply from the recipient.)</span>
       <span ng-if="!message.public">(This message will be private. Usually this is bad!)</span>
     </div>
   </div>
