@@ -10,10 +10,10 @@ $posts_offset = intval($_GET['offset']);
 $posts_limit = intval($_GET['limit']);
 $poster_uid = intval($_GET['uid']);
 if ($user_admin) {
-	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID`, `IsPublic`, `Title`, `Contents`, `Author`, `ResponseTo`, `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON `PostID`=`UID` WHERE (`RecipientID`=? OR `Author`=?)  GROUP BY `UID` ORDER BY `Date` DESC LIMIT ? , ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` ) WHERE `Instance` = ?";
+	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID`, `IsPublic`, `Title`, `Contents`, `Author`, `ResponseTo`, `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON `PostID`=`UID` WHERE (`RecipientID`=? OR `Author`=?) AND `Instance` = ? GROUP BY `UID` ORDER BY `Date` DESC LIMIT ? , ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` )";
 	$query_count_text = "SELECT COUNT(`UID`) FROM ( SELECT `Instance` , `UID`, `IsPublic`, `Title`, `Contents`, `Author`, `ResponseTo`, `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON `PostID`=`UID` WHERE (`RecipientID`=? OR `Author`=?) GROUP BY `UID` ) AS `Main` WHERE `Instance` = ?";
 } else {
-	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID`, `IsPublic`, `Title`, `Contents`, `Author`, `ResponseTo`, `Date` FROM ( SELECT `Instance` , `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON ( `PostID` = `UID` ) WHERE ( `IsPublic` = 1 OR `Author` = ? OR `RecipientID` = ? ) GROUP BY `UID` ORDER BY `Date` DESC ) AS `Base` LEFT JOIN `PostRecipients` ON `PostID`=`UID` WHERE (`RecipientID`=? OR `Author`=?) GROUP BY `UID` ORDER BY `Date` DESC LIMIT ? , ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` ) WHERE `Main`.`Instance` = ?";
+	$query_input_text = "SELECT `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` , `RecipientID` FROM ( SELECT `Instance` , `UID`, `IsPublic`, `Title`, `Contents`, `Author`, `ResponseTo`, `Date` FROM ( SELECT `Instance` , `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON ( `PostID` = `UID` ) WHERE ( `IsPublic` = 1 OR `Author` = ? OR `RecipientID` = ? ) GROUP BY `UID` ORDER BY `Date` DESC ) AS `Base` LEFT JOIN `PostRecipients` ON `PostID`=`UID` WHERE (`RecipientID`=? OR `Author`=?) AND `Instance` = ? GROUP BY `UID` ORDER BY `Date` DESC LIMIT ? , ? ) AS `Main` LEFT JOIN `PostRecipients` ON ( `UID` = `PostID` )";
 	$query_count_text = "SELECT COUNT(`UID`) FROM ( SELECT `Instance` , `UID`, `IsPublic`, `Title`, `Contents`, `Author`, `ResponseTo`, `Date` FROM ( SELECT `Instance` , `UID` , `IsPublic` , `Title` , `Contents` , `Author` , `ResponseTo` , `Date` FROM `Posts` LEFT JOIN `PostRecipients` ON ( `PostID` = `UID` ) WHERE ( `IsPublic` = 1 OR `Author` = ? OR `RecipientID` = ? ) GROUP BY `UID` ORDER BY `Date` DESC ) AS `Base` LEFT JOIN `PostRecipients` ON `PostID`=`UID` WHERE (`RecipientID`=? OR `Author`=?) GROUP BY `UID` ) AS `Main` WHERE `Main`.`Instance` = ?";
 }
 $qry_count = $db->prepare($query_count_text);
@@ -37,11 +37,11 @@ if ($qry === FALSE) {
 	die_error(500, "Server Error: Could not submit body query: " . $db->error);
 }
 if ($user_admin) {
-	if (!$qry->bind_param("iiiii", $poster_uid, $poster_uid, $posts_offset, $posts_limit, $user_instance)) {
+	if (!$qry->bind_param("iiiii", $poster_uid, $poster_uid, $user_instance, $posts_offset, $posts_limit)) {
 		die_error(500, "Server Error: Could not submit body query.");
 	}
 } else {
-	if (!$qry->bind_param("iiiiiii", $user_uid, $user_uid, $poster_uid, $poster_uid, $posts_offset, $posts_limit, $user_instance)) {
+	if (!$qry->bind_param("iiiiiii", $user_uid, $user_uid, $poster_uid, $poster_uid, $user_instance, $posts_offset, $posts_limit)) {
 		die_error(500, "Server Error: Could not submit body query.");
 	}
 }

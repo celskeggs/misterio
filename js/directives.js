@@ -49,6 +49,7 @@ app.directive('inboxCounter', function($interval, User) {
         element.text("");
       } else {
         User.messages.inboxCount().then(function (data) {
+          scope.inboxCount = data;
           element.text(data.inbox ? data.inbox : "");
         });
       }

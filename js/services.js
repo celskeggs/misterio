@@ -211,6 +211,15 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
           headers: headers()
         }));
       },
+      toggleFinalize: function(id) {
+        return use($http.post('qedit-message.php', {}, {
+          params: {
+            id: id,
+            operation: "finalize"
+          },
+          headers: headers()
+        }));
+      },
       send: function(message) {
         // message: {title, data, to: [], prev: ?, public}
         return use($http.post('send-message.php', message, config()));

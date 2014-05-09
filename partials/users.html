@@ -17,9 +17,9 @@
     </thead>
     <tbody>
       <tr ng-repeat="user in User.others">
-        <td><a ng-href="./users/{{user.uid}}">{{user.uid}}</a></td>
+        <td><a ng-href="./users/{{user.uid}}" class="label label-default">{{user.uid}}</a></td>
         <td ng-hide="state.editing === $index">{{user.name}}</td>
-        <td ng-hide="state.editing === $index">
+        <td ng-hide="state.editing === $index" style="width: 89px;">
           <div class="btn-group btn-group-xs" ng-if="access()">
             <button type="button" ng-repeat="inst in instances()" ng-click="move(user.uid, inst)" class="btn btn-large" ng-class="user.uid == User.user.id ? 'btn-primary' : 'btn-danger'" ng-disabled="user.instance == inst">{{inst}}</button>
           </div>

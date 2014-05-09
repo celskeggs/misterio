@@ -42,6 +42,8 @@ app.config(['$locationProvider', function($locationProvider) {
 app.run(function($rootScope, $location, User) {
   $rootScope.city = "Toluca";
 
+  $rootScope.inboxCount = 0;
+
   $rootScope.page = {
     title: 'Un Misterio en ' + $rootScope.city,
     fullTitle: function() {
@@ -73,6 +75,9 @@ app.run(function($rootScope, $location, User) {
     if (next.controller !== 'Token' && !User.user.session) {
       $location.url('/forbidden'); // ?proceed=' + encodeURIComponent($location.path())
     }
+    if (document.getElementById("mystery-title").innerText.match(/A Mystery/)) {
+      document.getElementById("mystery-title").innerText = "Do not use Google Translate";
+    }
   });
 
   $rootScope.onShouldUpdateInbox = function(call) { // I don't know what I'm doing.
@@ -81,7 +86,16 @@ app.run(function($rootScope, $location, User) {
     });
   };
 
+  $rootScope.feedListeners = [];
+  
+  $rootScope.tellFeedListeners = function() {
+    for (var i=0; i<$rootScope.feedListeners.length; i++) {
+      $rootScope.feedListeners[i]();
+    }
+  };
+
   $rootScope.onShouldClearFeed = function(call) { // I don't know what I'm doing.
+    $rootScope.feedListeners.push(call);
     $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
       if (next.originalPath == "/") {
         call();

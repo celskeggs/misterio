@@ -4,8 +4,8 @@
 // controllers
 var app = angular.module('misterio.controllers', []);
 
-app.controller('Feed', ['$scope', '$location', 'User',
-    function Feed($scope, $location, User) {
+app.controller('Feed', ['$scope', '$location', 'User', '$rootScope',
+    function Feed($scope, $location, User, $rootScope) {
   $scope.user = function(id) {
     return User.userLookup[id];
   };
@@ -17,8 +17,11 @@ app.controller('Feed', ['$scope', '$location', 'User',
   $scope.limit = 10;
   $scope.get = function() {
     $scope.messages = [];
+    $scope.loading = true;
     User.messages.all($scope.offset, $scope.limit)
       .then(function(data) {
+      $rootScope.tellFeedListeners();
+      $scope.loading = true;
       $scope.messages = [];
       for (var i=0; i<data.data.length; i++) {
         var d = data.data[i];
@@ -30,6 +33,25 @@ app.controller('Feed', ['$scope', '$location', 'User',
         $scope.messages.push(d);
       }
       $scope.total = data.total;
+    });
+  };
+
+  $scope.showing = -1;
+  $scope.show = function(id) {
+    if ($scope.showing == id) {
+      $scope.showing = -1;
+    } else {
+      $scope.showing = id;
+    }
+  };
+  $scope.isshowing = function(id) {
+    return $scope.showing == id;
+  };
+
+  $scope.finalize = function(id) {
+    if (!User.user.access) return;
+    User.messages.toggleFinalize(id).then(function() {
+      $scope.get();
     });
   };
 
@@ -83,11 +105,21 @@ app.controller('Inbox', ['$scope', '$location', 'User',
   $scope.total = 0;
   $scope.offset = 0;
   $scope.limit = 10;
+
   $scope.get = function() {
     $scope.messages = [];
     User.messages.inbox($scope.offset, $scope.limit)
       .then(function(data) {
-      $scope.messages = data.data;
+      $scope.messages = [];
+      for (var i=0; i<data.data.length; i++) {
+        var d = data.data[i];
+        if (d.prev && !d.prevobj) {
+          User.messages.get(d.prev).then(function (po) {
+            this.prevobj = po;
+          }.bind(d));
+        }
+        $scope.messages.push(d);
+      }
       $scope.total = data.total;
     });
   };
@@ -98,6 +130,25 @@ app.controller('Inbox', ['$scope', '$location', 'User',
 
   $scope.access = function() {
     return User.user.access;
+  };
+
+  $scope.showing = -1;
+  $scope.show = function(id) {
+    if ($scope.showing == id) {
+      $scope.showing = -1;
+    } else {
+      $scope.showing = id;
+    }
+  };
+  $scope.isshowing = function(id) {
+    return $scope.showing == id;
+  };
+
+  $scope.finalize = function(id) {
+    if (!User.user.access) return;
+    User.messages.toggleFinalize(id).then(function() {
+      $scope.get();
+    });
   };
 
   $scope.delete = function(id) {
@@ -441,10 +492,45 @@ app.controller('Profile', ['$scope', '$location', '$routeParams', 'User',
     $scope.messages = [];
     User.messages.profile(uid, $scope.offset, $scope.limit)
       .then(function(data) {
-      $scope.messages = data.data;
+      $scope.messages = [];
+      for (var i=0; i<data.data.length; i++) {
+        var d = data.data[i];
+        if (d.prev && !d.prevobj) {
+          User.messages.get(d.prev).then(function (po) {
+            this.prevobj = po;
+          }.bind(d));
+        }
+        $scope.messages.push(d);
+      }
       $scope.total = data.total;
-      console.log($scope.canNext() + " / " + $scope.canPrev() + " / " + data.total);
     });
+  };
+
+  $scope.showing = -1;
+  $scope.show = function(id) {
+    if ($scope.showing == id) {
+      $scope.showing = -1;
+    } else {
+      $scope.showing = id;
+    }
+  };
+  $scope.isshowing = function(id) {
+    return $scope.showing == id;
+  };
+
+  $scope.finalize = function(id) {
+    if (!User.user.access) return;
+    User.messages.toggleFinalize(id).then(function() {
+      $scope.get();
+    });
+  };
+
+  $scope.delete = function(id) {
+    if (!User.user.access) return;
+    if (confirm('Are you sure you wish to delete this message?')) {
+      User.messages.remove(id);
+      $scope.get();
+    }
   };
 
   $scope.canNext = function() {
