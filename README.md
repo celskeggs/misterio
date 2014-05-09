@@ -1,3 +1,5 @@
 Un Misterio en Toluca.
 
-More information not yet added. This is mostly a one-developer project.
+Para la clase de Español III de Roberto en Catlin Gabel School.
+
+This system allows for the class's roleplaying in the Toluca murder mystery!
