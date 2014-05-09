@@ -1,3 +1,6 @@
+Note that this document is now old.
+
+
 GET messages.php?offset=n&limit=y&scope=z
   Offset/limit controls pagination
   Scope controls "type" of messages: inbox, all, count
