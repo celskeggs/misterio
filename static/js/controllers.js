@@ -355,6 +355,7 @@ app.controller('Users', ['$scope', '$location', 'User',
 
   $scope.be = function(uid) {
     User.become(uid).then(function(data) {
+	  // TODO: Fix this.
       $location.path('/token/' + data.target);
     });
   };
@@ -560,18 +561,14 @@ app.controller('Profile', ['$scope', '$location', '$routeParams', 'User',
   $scope.get();
 }]);
 
-app.controller('Token', ['$routeParams', '$location', 'User',
-    function Token($routeParams, $location, User) {
-  if ($routeParams.token && $routeParams.token.length === 40) {
-    User.login($routeParams.token).then(function() {
-      $location.url('/');
-    }, function() {
-      $location.url('/forbidden');
-    });
-  } else {
-    // TODO: flash message
-    $location.url('/forbidden');
-  }
+app.controller('Select', ['$scope', '$location', 'User', function Select($scope, $location, User) {
+  $scope.User = User;
+  $scope.access = function() {
+    return User.user.access;
+  };
+  $scope.selectUser = function(user) {
+    alert("Selected identity: " + user);
+  };
 }]);
 
 app.controller('Navbar', ['$scope', '$location', 'User', function Navbar($scope, $location, User) {

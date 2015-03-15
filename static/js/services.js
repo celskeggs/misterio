@@ -143,7 +143,7 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
       User.user.session = null;
       User.user.instance = null;
       Storage.set('user', User.user);
-      $location.url('/forbidden');
+      $location.url('/select');
     },
     avatars: {
       get: function() {

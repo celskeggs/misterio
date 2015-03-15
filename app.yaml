@@ -1,0 +1,35 @@
+application: toluca-misterio
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: true
+
+libraries:
+- name: webapp2
+  version: latest
+
+handlers:
+- url: /css
+  static_dir: static/css/
+  secure: always
+  login: required
+- url: /js
+  static_dir: static/js/
+  secure: always
+  login: required
+- url: /lib
+  static_dir: static/lib/
+  secure: always
+  login: required
+- url: /partials
+  static_dir: static/partials/
+  secure: always
+  login: required
+- url: /img
+  static_dir: static/img/
+  secure: always
+  login: required
+- url: /.*
+  script: misterio.application
+  secure: always
+  login: required

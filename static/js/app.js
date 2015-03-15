@@ -25,10 +25,8 @@ app.config(['$routeProvider', function($routeProvider) {
   r('/users', 'users', 'Users');
   r('/users/add', 'add-user', 'AddUser');
   r('/users/:uid', 'feed', 'Profile');
-
-  r('/token/:token', 'loading', 'Token');
-
-  r('/forbidden', 'forbidden');
+  
+  r('/select', 'select', 'Select')
 
   $routeProvider.otherwise({
     templateUrl: 'partials/not-found.html'
@@ -72,8 +70,8 @@ app.run(function($rootScope, $location, User) {
   };
 
   $rootScope.$on('$routeChangeStart', function(event, next, current) {
-    if (next.controller !== 'Token' && !User.user.session) {
-      $location.url('/forbidden'); // ?proceed=' + encodeURIComponent($location.path())
+    if (next.controller !== 'Select' && !User.user.session) {
+      $location.url('/select');
     }
     if (document.getElementById("mystery-title").innerText.match(/A Mystery/)) {
       document.getElementById("mystery-title").innerText = "Do not use Google Translate";
