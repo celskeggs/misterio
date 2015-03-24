@@ -28,7 +28,7 @@
           <li ng-if="!access()"><a nav-link="^/users/2$" href="./users/2">Mensajes Importantes</a></li>
           <li ng-if="access()"><a nav-link="^/broadcast$" href="./broadcast">Emitir</a></li>
         </ul>
-        <ul class="nav navbar-nav navbar-right" ng-cloak ng-if="User.user.session">
+        <ul class="nav navbar-nav navbar-right" ng-cloak>
           <li class="btn-group">
             <button ng-repeat="inst in instances()" class="navbar-btn btn" ng-class="User.user.instance == inst ? 'btn-default' : 'btn-warning'" ng-click="selectInstance(inst)" ng-disabled="!access() || User.user.instance == inst">{{inst}}</button>
           </li>

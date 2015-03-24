@@ -1,0 +1,31 @@
+.character-selection {
+  margin: auto;
+  width: 224px;
+  background-color: #EEE;
+  border-radius: 16px;
+  padding: 10px;
+  cursor: pointer !important;
+}
+.character-selection:hover {
+  background-color: #DDD;
+}
+.character-selection:active {
+  background-color: #CCC;
+}
+.character-selection img {
+  border: 2px solid black;
+  border-radius: 16px;
+}
+.character-selection div {
+  text-align: center;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.character-selection div.character-name {
+  font-size: 25px;
+  font-family: serif;
+}

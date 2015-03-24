@@ -5,6 +5,7 @@
   <title>Select Character</title>
   <link rel="stylesheet" href="css/bootstrap.min.css">
   <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/select.css">
 </head>
 <body>
   <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
@@ -20,7 +21,7 @@
       </div>
       <div class="collapse navbar-collapse" ng-controller="Navbar">
         <ul class="nav navbar-nav navbar-right">
-          <li><div class="navbar-btn name-slot">USERNAME</div></li>
+          <li><div class="navbar-btn name-slot"><? USERNAME ?></div></li>
           <li><button onclick="document.location='/logoff';" class="btn btn-default navbar-btn">Salir</button></li>
         </ul>
       </div>
@@ -36,11 +37,30 @@
         </noscript>
       </div>
 
-      <div style="margin: auto; width: 200px;">
-	    <img src="/img/arturo_d_b_a.png" style="border: 2px solid black; border-radius: 16px;" />
-		<div>ARTURO</div>
+      <!-- note: these are fake directives. see misterio.py. -->
+      <? CHARACTERS ?>
+      <!-- if any characters -->
+      <div class="alert alert-info">Click on the character that you want to be.</div>
+      <? CHARACTERS ?>
+      <!-- repeated once per character -->
+      <div class="character-selection" cid="<? CID ?>">
+	    <img src="/img/<? AVATAR ?>" />
+		<div class="character-name"><? NAME ?></div>
+		<div><? SESSION ?></div>
 	  </div>
+      <? CHARACTERS ?>
+      <!-- if no characters -->
+      <div class="alert alert-danger">You have no characters! Please contact your session administrator.</div>
+      <? CHARACTERS ?>
 
+      <script>
+      var chrs = document.getElementsByClassName("character-selection");
+      for (var i=0; i<chrs.length; i++) {
+        chrs[i].onclick = function() {
+          window.location = "/select?id=" + this.getAttribute("cid");
+        }.bind(chrs[i]);
+      }
+      </script>
     </div>
   </div>
 
