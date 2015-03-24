@@ -5,7 +5,7 @@ from google.appengine.ext import ndb
 class DataBlock(ndb.Model):
 	contents = ndb.BlobProperty(required=True)
 
-class TestPage(webapp2.RequestHandler):
+class MainPage(webapp2.RequestHandler):
 	def get(self):
 		character = self.request.cookies.get('character', None)
 		if character == None:
@@ -46,14 +46,18 @@ class LogoffPage(webapp2.RequestHandler):
 	def get(self):
 		self.response.delete_cookie("character")
 		self.redirect(users.create_logout_url('/'))
-class TestPage2(webapp2.RequestHandler):
-	def get(self):
-		self.response.headers["Content-Type"] = "text/plain"
-		self.response.write("HELLO WORLD #2\n")
+class DynamicPage(webapp2.RequestHandler):
+	def get(self, dynamic_id):
+		self.response.headers["Content-Type"] = "application/json"
+		if dynamic_id == "users":
+			o = {"me": 17, "session": "2015 Misterio Group 1", "access": False, "users": [{"cid": 17, "avatar": "arturo_d_b_a.png", "name": "Sra. Databasa Fletched"}]}
+		else:
+			return self.abort(404)
+		self.response.write(json.dumps(o))
 
 application = webapp2.WSGIApplication([
 	('/logoff', LogoffPage),
 	('/select', SelectPage),
-	('/[a-z]*', TestPage),
-	('/dynamic/', TestPage2),
+	('/[a-z]*', MainPage),
+	('/dynamic/([a-z]+)', DynamicPage),
 ])

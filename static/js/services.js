@@ -54,18 +54,8 @@ app.factory('Storage', ['$window', function Storage($window) {
   };
 }]);
 
-app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
-    function User($rootScope, $location, $http, $q, Storage) {
-  function config() {
-    return {
-      headers: headers()
-    };
-  }
-  function headers() {
-    return {
-      'X-Session': User.user.session
-    };
-  }
+app.factory('User', ['$rootScope', '$location', '$http', '$q',
+    function User($rootScope, $location, $http, $q) {
   function use(req, manipulate) {
     var d = $q.defer();
     req.success(success(d, manipulate)).error(error(d));
@@ -101,26 +91,20 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
     };
   }
 
-  // TODO: pull users on launch ("login"?)
-
   var User = {
-    user: Storage.get('user') || {
+    user: {
       id: null,
       name: null,
-      access: null,
-      session: null,
-      instance: null
+      access: null
     },
     inboxes: function() {
       return use($http.get('get-counts.php', {
-        params: {},
-        headers: headers()
+        params: {}
       }));
     },
     others: [],
     userLookup: {}, // hmmm
-    login: function(session) {
-      User.user.session = session;
+    fetch: function() {
       return User.users.all().then(function(data) {
         return User.user.id;
       }, function(err) {
@@ -130,26 +114,13 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
         throw err;
       });
     },
-    become: function(targetid) {
-      return use($http.get('be-user.php', {
-        params: {be: targetid},
-        headers: headers()
-      }));
-    },
     logout: function() {
-      User.user.id = null;
-      User.user.name = null;
-      User.user.access = null;
-      User.user.session = null;
-      User.user.instance = null;
-      Storage.set('user', User.user);
-      $location.url('/select');
+      window.location = '/logoff';
     },
     avatars: {
       get: function() {
         return use($http.get('get-avatars.php', {
-          params: {},
-          headers: headers()
+          params: {}
         }));
       }
     },
@@ -158,8 +129,7 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
         return use($http.get('get-message.php', {
           params: {
             id: id
-          },
-          headers: headers()
+          }
         }));
       },
       all: function(offset, limit) {
@@ -168,8 +138,7 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
             offset: offset,
             limit: limit,
             scope: 'all'
-          },
-          headers: headers()
+          }
         }));
       },
       inboxCount: function() {
@@ -178,8 +147,7 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
             offset: 0, // ignored on server
             limit: 1, // ignored on server
             scope: 'count'
-          },
-          headers: headers()
+          }
         }));
       },
       inbox: function(offset, limit) {
@@ -188,18 +156,16 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
             offset: offset,
             limit: limit,
             scope: 'inbox'
-          },
-          headers: headers()
+          }
         }));
       },
-      profile: function(uid, offset, limit) {
+      profile: function(cid, offset, limit) {
         return use($http.get('profile.php', {
           params: {
-            uid: uid,
+            cid: cid,
             offset: offset,
             limit: limit
-          },
-          headers: headers()
+          }
         }));
       },
       update: function(id, message) {
@@ -207,8 +173,7 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
         return use($http.put('update-message.php', message, {
           params: {
             id: id
-          },
-          headers: headers()
+          }
         }));
       },
       toggleFinalize: function(id) {
@@ -216,26 +181,23 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
           params: {
             id: id,
             operation: "finalize"
-          },
-          headers: headers()
+          }
         }));
       },
       send: function(message) {
         // message: {title, data, to: [], prev: ?, public}
-        return use($http.post('send-message.php', message, config()));
+        return use($http.post('send-message.php', message, {}));
       },
       remove: function(id) {
         return use($http.delete('remove-message.php', {
           params: {
             id: id
-          },
-          headers: headers()
+          }
         }));
       },
       clear: function() {
         return use($http.delete('clear-messages.php', {
-          params: {},
-          headers: headers()
+          params: {}
         }));
       }
     },
@@ -243,56 +205,51 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
       // TODO: enforce access?
       add: function(user) {
         // user: {name, email, access, avatar}
-        return use($http.post('add-user.php', user, config()), function(data) {
-          user.uid = data.uid;
+        return use($http.post('add-user.php', user, {}), function(data) {
+          user.cid = data.cid;
           User.others.push(user);
-          User.userLookup[user.uid] = user;
+          User.userLookup[user.cid] = user;
         });
       },
-      move: function(uid, instance) {
+      move: function(cid, instance) {
         return use($http.post('move-user.php', {instance: instance}, {
           params: {
-            uid: uid
-          },
-          headers: headers()
+            cid: cid
+          }
         }));
       },
       all: function() {
-        return use($http.get('get-users.php', config()), function(data) {
-          var others = data.data, uid = data.uid, instance = data.instance;
+        return use($http.get('/dynamic/users', {}), function(data) {
+          var others = data.users, cid = data.cid, access = data.access;
           User.others.length = 0;
           User.others.push.apply(User.others, others);
           User.userLookup = {};
           for (var i = 0; i < others.length; i++) {
-            User.userLookup[others[i].uid] = others[i];
+            User.userLookup[others[i].cid] = others[i];
           }
-          User.user.id = uid;
-          User.user.name = User.userLookup[uid].name;
-          User.user.access = User.userLookup[uid].access;
-          User.user.instance = instance;
-          Storage.set('user', User.user);
+          User.user.id = cid;
+          User.user.name = User.userLookup[cid].name;
+          User.user.access = access;
         });
       },
       // TODO: enforce access?
-      reset: function(uid) {
+      reset: function(cid) {
         return use($http.post('reset-user.php', {}, {
           params: {
-            uid: uid
-          },
-          headers: headers()
+            cid: cid
+          }
         }));
       },
-      update: function(uid, user) {
+      update: function(cid, user) {
         // user: {name, email, access, avatar}
         var d = $q.defer();
         $http.put('update-user.php', user, {
           params: {
-            uid: uid
-          },
-          headers: headers()
+            cid: cid
+          }
         }).success(function(data, status, res) {
           // TODO: update User.others
-          var uid = data.uid, user = User.userLookup[uid];
+          var cid = data.cid, user = User.userLookup[cid];
           for (var key in data) {
             user[key] = data[key];
           }
@@ -300,29 +257,27 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q', 'Storage',
         }).error(error(d));
         return d.promise;
       },
-      remove: function(uid) {
+      remove: function(cid) {
         for (var i = 0; i < User.others.length; i++) {
-          if (User.others[i].uid === uid) {
+          if (User.others[i].cid === cid) {
             break;
           }
         }
         User.others.splice(i, 1);
         return use($http.delete('remove-user.php', {
           params: {
-            uid: uid
-          },
-          headers: headers()
+            cid: cid
+          }
         })).then(function(data) {
-          delete User.userLookup[uid];
+          delete User.userLookup[cid];
           return data;
         }, function(err) {
-          User.others.splice(i, 0, User.userLookup[uid]);
+          User.others.splice(i, 0, User.userLookup[cid]);
           throw err;
         });
       }
     }
   };
-  User.user.session && User.login(User.user.session);
-  Storage.set('user', User.user);
+  User.fetch();
   return User;
 }]);

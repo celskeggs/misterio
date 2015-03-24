@@ -24,9 +24,7 @@ app.config(['$routeProvider', function($routeProvider) {
   r('/broadcast', 'broadcast', 'Broadcast');
   r('/users', 'users', 'Users');
   r('/users/add', 'add-user', 'AddUser');
-  r('/users/:uid', 'feed', 'Profile');
-  
-  r('/select', 'select', 'Select')
+  r('/users/:cid', 'feed', 'Profile');
 
   $routeProvider.otherwise({
     templateUrl: 'partials/not-found.html'
@@ -70,9 +68,6 @@ app.run(function($rootScope, $location, User) {
   };
 
   $rootScope.$on('$routeChangeStart', function(event, next, current) {
-    if (next.controller !== 'Select' && !User.user.session) {
-      $location.url('/select');
-    }
     if (document.getElementById("mystery-title").innerText.match(/A Mystery/)) {
       document.getElementById("mystery-title").innerText = "Do not use Google Translate";
     }

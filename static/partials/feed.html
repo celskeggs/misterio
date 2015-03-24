@@ -1,9 +1,9 @@
-<div class="media" ng-if="uid !== undefined">
-  <a class="pull-left" href="./users/{{uid}}">
-    <img class="media-object user-avatar" src="{{'./img/' + user(uid).avatar}}" alt="{{user(uid).name}}">
+<div class="media" ng-if="cid !== undefined">
+  <a class="pull-left" href="./users/{{cid}}">
+    <img class="media-object user-avatar" src="{{'./img/' + user(cid).avatar}}" alt="{{user(cid).name}}">
   </a>
   <div class="media-body">
-    <h1>{{user(uid).name}}</h1>
+    <h1>{{user(cid).name}}</h1>
   </div>
 </div>
 

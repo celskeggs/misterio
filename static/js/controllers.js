@@ -206,8 +206,8 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
     $scope.state.write = false;
   };
 
-  $scope.user = function(uid) {
-    return User.userLookup[uid];
+  $scope.user = function(cid) {
+    return User.userLookup[cid];
   };
   $scope.User = User;
 
@@ -284,8 +284,8 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
 
 app.controller('Broadcast', ['$scope', '$location', '$routeParams', 'User',
     function Compose($scope, $location, $routeParams, User) {
-  $scope.user = function(uid) {
-    return User.userLookup[uid];
+  $scope.user = function(cid) {
+    return User.userLookup[cid];
   };
   $scope.message = "";
 
@@ -297,7 +297,7 @@ app.controller('Broadcast', ['$scope', '$location', '$routeParams', 'User',
       if (after) { $scope.message += delimiter; }
       after = true;
       var user = User.others[index];
-      $scope.message += user.uid + "||| Message title goes here |||\nMessage body for " + user.name + " goes here.\n";
+      $scope.message += user.cid + "||| Message title goes here |||\nMessage body for " + user.name + " goes here.\n";
     }
   };
 
@@ -312,10 +312,10 @@ app.controller('Broadcast', ['$scope', '$location', '$routeParams', 'User',
         $scope.$emit('flash', 'error', 'Bad format', 'The delimiter ||| was found ' + sections.length + ' times instead of 3 times.', {dismissable: true});
         return;
       }
-      var uid = sections[0], title = sections[1], contents = sections[2];
+      var cid = sections[0], title = sections[1], contents = sections[2];
       title = title.replace(/^[ \t\n]+|[ \t\n]+$/g, ""); // Trim string of whitespace.
       contents = contents.replace(/^[ \t\n]+|[ \t\n]+$/g, "");
-      messages.push({"title": title, "data": contents, "public": false, "finish": true, "to": [parseInt(uid)]});
+      messages.push({"title": title, "data": contents, "public": false, "finish": true, "to": [parseInt(cid)]});
     }
     for (var mid in messages) {
       var message = messages[mid];
@@ -353,35 +353,11 @@ app.controller('Users', ['$scope', '$location', 'User',
     }
   };
 
-  $scope.be = function(uid) {
-    User.become(uid).then(function(data) {
-	  // TODO: Fix this.
-      $location.path('/token/' + data.target);
-    });
-  };
+  // be has been removed.
 
-  $scope.avatars = [];
-  User.avatars.get().then(function (data) {
-    $scope.avatars = data;
-  });
+  // avatars has been removed.
 
-  $scope.move = function(uid, target) {
-    var msg1, msg2;
-    if (uid == User.user.id) {
-      msg1 = "Are you sure that you want to switch to instance " + target + "?";
-      msg2 = "Estás";
-    } else {
-      msg1 = "Are you sure that you want to move this user to instance " + target + "? You will not be able to see them unless you move yourself to the other instance.";
-      msg2 = "Está";
-    }
-    if (confirm(msg1)) {
-      User.users.move(uid, target).then(function (data) {
-        User.users.all().then(function(data) {
-          $scope.$emit('flash', 'info', 'Movido!', msg2 + ' en instancia ' + target, {dismissable:true});
-        });
-      });
-    }
-  };
+  // move has been removed.
 
   $scope.access = function() {
     return User.user.access;
@@ -389,7 +365,7 @@ app.controller('Users', ['$scope', '$location', 'User',
 
   $scope.disabled = function(index, del) {
     var s = $scope.state, u = User.others[index], m = User.user.id;
-    return s.adding || ~s.editing || (del && u.uid === m);
+    return s.adding || ~s.editing || (del && u.cid === m);
   };
 
   $scope.selectAvatar = function(avatar) {
@@ -422,7 +398,7 @@ app.controller('Users', ['$scope', '$location', 'User',
     if (!User.user.access) return;
     var user = User.others[index];
     if (confirm('Are you sure you wish to resend the email for ' + user.name + '?')) {
-      User.users.reset(user.uid);
+      User.users.reset(user.cid);
     }
   };
 
@@ -430,7 +406,7 @@ app.controller('Users', ['$scope', '$location', 'User',
     if (!User.user.access) return;
     var user = User.others[index];
     if (confirm('Are you sure you wish to delete ' + user.name + '?')) {
-      User.users.remove(user.uid);
+      User.users.remove(user.cid);
     }
   };
 
@@ -439,7 +415,7 @@ app.controller('Users', ['$scope', '$location', 'User',
     if ($scope.state.adding) {
       User.users.add($scope.editUser).then($scope.cancel);
     } else {
-      User.users.update($scope.editUser.uid, $scope.editUser).then($scope.commit);
+      User.users.update($scope.editUser.cid, $scope.editUser).then($scope.commit);
     }
   };
 
@@ -472,26 +448,26 @@ app.controller('AddUser', ['$scope', '$location', 'User',
   $scope.user = {};
   $scope.submit = function() {
     User.users.add($scope.user).then(function(data) {
-      $location.url('/users/' + data.uid);
+      $location.url('/users/' + data.cid);
     });
   };
 }]);
 
 app.controller('Profile', ['$scope', '$location', '$routeParams', 'User',
     function Profile($scope, $location, $routeParams, User) {
-  var uid = $scope.uid = $routeParams.uid;
+  var cid = $scope.cid = $routeParams.cid;
   $scope.user = function(id) {
     return User.userLookup[id];
   };
 
-  $scope.linkurl = "/users/" + uid;
+  $scope.linkurl = "/users/" + cid;
 
   $scope.total = 0;
   $scope.offset = 0;
   $scope.limit = 10;
   $scope.get = function() {
     $scope.messages = [];
-    User.messages.profile(uid, $scope.offset, $scope.limit)
+    User.messages.profile(cid, $scope.offset, $scope.limit)
       .then(function(data) {
       $scope.messages = [];
       for (var i=0; i<data.data.length; i++) {
@@ -561,16 +537,6 @@ app.controller('Profile', ['$scope', '$location', '$routeParams', 'User',
   $scope.get();
 }]);
 
-app.controller('Select', ['$scope', '$location', 'User', function Select($scope, $location, User) {
-  $scope.User = User;
-  $scope.access = function() {
-    return User.user.access;
-  };
-  $scope.selectUser = function(user) {
-    alert("Selected identity: " + user);
-  };
-}]);
-
 app.controller('Navbar', ['$scope', '$location', 'User', function Navbar($scope, $location, User) {
   $scope.User = User;
   $scope.access = function() {
@@ -589,8 +555,8 @@ app.controller('Navbar', ['$scope', '$location', 'User', function Navbar($scope,
   $scope.logout = User.logout;
 }]);
 
-app.controller('Flash', ['$scope', '$rootScope', 'Storage',
-    function Flash($scope, $rootScope, Storage) {
+app.controller('Flash', ['$scope', '$rootScope',
+    function Flash($scope, $rootScope) {
   $scope.flash = [];
   $rootScope.$on('apiError', function(e, status, message) {
     var type;
@@ -617,9 +583,6 @@ app.controller('Flash', ['$scope', '$rootScope', 'Storage',
     }
     if (i >= 1) $scope.flash.splice(0, i);
   });
-
-  Storage.status || flash('warning', 'Cookies Disabled!',
-    'This site uses a method similar to cookies to manage your user session, but cannot because your cookies are disabled!');
 
   $scope.dismiss = function(index) {
     $scope.flash.splice(index, 1);
