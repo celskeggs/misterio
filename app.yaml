@@ -6,7 +6,9 @@ threadsafe: true
 
 libraries:
 - name: webapp2
-  version: latest
+  version: 2.5.2
+- name: jinja2
+  version: 2.6
 
 skip_files:
 - ^(.*/)?#.*#$
@@ -38,6 +40,10 @@ handlers:
   static_dir: static/img/
   secure: always
   login: required
+- url: /administration(/.*)?
+  script: misterio.administration
+  secure: always
+  login: admin
 - url: /.*
   script: misterio.application
   secure: always

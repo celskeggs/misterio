@@ -1,6 +1,6 @@
 <h1>Personajes<button type="button" class="btn btn-success pull-right" ng-click="add()" ng-if="access()" ng-disabled="state.editing !== -1">+ Nueva Persona</button></h1>
 
-<p>Hay {{User.others.length}} personajes que puedes ver ahora. Est&aacute;s en instancia {{User.user.instance}}. Solamente puedes ver personajes en esta instancia.</p>
+<p>Hay {{User.others.length}} personaje{{User.others.length == 1 ? "" : "s"}}.</p>
 
 <form name="EditForm" ng-submit="save()">
   <table class="table table-striped table-hover">

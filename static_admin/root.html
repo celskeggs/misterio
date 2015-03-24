@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Administration Page</title>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a id="mystery-title" class="navbar-brand" href="#">Manage Sessions</a>
+      </div>
+      <div class="collapse navbar-collapse" ng-controller="Navbar">
+        <ul class="nav navbar-nav navbar-right">
+          <li style="padding-right: 10px;"><button onclick="document.location='/';" class="btn btn-default navbar-btn">Volver al Juego</button></li>
+          <li><button onclick="document.location='/logoff';" class="btn btn-warning navbar-btn">Salir</button></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="main-content">
+
+      <div>
+        <noscript>
+          <div class="alert alert-danger"><strong>JavaScript Disabled!</strong> This site uses JavaScript to provide an efficient and responsive interface, please enable JavaScript!</div>
+        </noscript>
+      </div>
+
+      <ol class="breadcrumb">
+        <li class="active">Root</li>
+      </ol>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Templates</h3>
+        </div>
+        <div class="panel-body">
+          <div class="alert alert-info"><strong>Information:</strong> Every <strong>session</strong> is based on a <strong>template</strong>, which specifies the <strong>characters</strong> and <strong>predefined messages</strong>. Scroll down to see the sessions.</div>
+          <div class="list-group">
+            <a href="#" class="list-group-item">2014 Template </a>
+            <a href="#" class="list-group-item">2015 Template</a>
+            <a href="#" class="list-group-item">Alternate 2015 Template</a>
+            <a href="#" class="list-group-item">2016 Template</a>
+          </div>
+          <div class="alert alert-warning"><strong>Warning!</strong> Creating a new template here will not copy any existing data. Click on an existing template to be able to duplicate it.</div>
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="Template name...">
+            <span class="input-group-btn">
+              <button class="btn btn-warning" type="button">New Original Template</button>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Sessions</h3>
+        </div>
+        <div class="panel-body">
+          <div class="alert alert-info"><strong>Information:</strong> A <strong>session</strong> is a particular instance of a game, played by <strong>a specific group of players</strong>, with its own distinct set of <strong>posts</strong>. </div>
+          <div class="list-group">
+            <a href="#" class="list-group-item">2014 Session A</a>
+            <a href="#" class="list-group-item">2014 Session B</a>
+            <a href="#" class="list-group-item">2015 Session for Block 5</a>
+            <a href="#" class="list-group-item">Prototype 2016 Session</a>
+          </div>
+          <div class="alert alert-info" style="margin-bottom: 0px;"><strong>Information:</strong> Click on a template (above) to be able to create a new session based on that template. All sessions must be based on an existing template.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="lib/jquery/jquery.js"></script>
+  <script src="lib/underscore/underscore.js"></script>
+  <script src="lib/bootstrap/bootstrap.js"></script>
+</body>
+</html>
