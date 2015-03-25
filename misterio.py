@@ -4,6 +4,7 @@ from google.appengine.ext import ndb
 
 with open("avatar-list.txt", "r") as f:
 	avatars = list(filter(None, (x.strip() for x in f.readlines())))
+avatars.sort()
 
 class Template(ndb.Model):
 	name = ndb.StringProperty(required=True)
@@ -111,33 +112,45 @@ class AdminPage(webapp2.RequestHandler):
 			self.display_error("Invalid key.")
 			return None
 		return unwrapped
+	def get_reqs(self, *requests):
+		return self.get_reqs_i(requests)
+	def get_reqs_key(self, *requests):
+		return self.get_reqs_i(requests[:-1], requests[-1])
+	def get_reqs_i(self, requests, key=None):
+		vals = [True]
+		rescount = len(requests) + (1 if key != None else 0)
+		for req in requests:
+			value = self.request.get(req, "")
+			if value == "":
+				self.display_error("Missing request parameter: %s" % req)
+				return [False] + [None] * rescount
+			vals.append(value)
+		if key != None:
+			kv = self.safe_get_key(key)
+			if kv == None:
+				return [False] + [None] * rescount
+			vals.append(kv)
+		return vals
 	def display_error(self, error):
 		self.response.headers["Content-Type"] = "text/html"
 		jt = JINJA_ENVIRONMENT.get_template('error.html')
 		self.response.write(jt.render({"error": error}))
 	def post(self, rel=""):
 		if rel == "new_template":
-			name = self.request.get("name", "")
-			if name == "":
-				return self.display_error("Missing request parameter: name")
-			key = Template(name=name).put()
-			self.redirect("/administration/template?key=%s" % key.urlsafe())
+			succ, name = self.get_reqs("name")
+			if succ:
+				key = Template(name=name).put()
+				self.redirect("/administration/template?key=%s" % key.urlsafe())
 		elif rel == "add_message_set":
-			name = self.request.get("name", "")
-			if name == "":
-				return self.display_error("Missing request parameter: name")
-			key = self.safe_get_key("Template")
-			if key != None:
+			succ, name, key = self.get_reqs_key("name", "Template")
+			if succ:
 				templ = key.get()
 				templ.message_sets.append(name)
 				templ.put()
 				self.redirect("/administration/template?key=%s#message-sets" % key.urlsafe())
 		elif rel == "delete_message_set":
-			name = self.request.get("name", "")
-			if name == "":
-				return self.display_error("Missing request parameter: name")
-			key = self.safe_get_key("Template")
-			if key != None:
+			succ, name, key = self.get_reqs_key("name", "Template")
+			if succ:
 				templ = key.get()
 				if name in templ.message_sets:
 					templ.message_sets.remove(name)
@@ -146,17 +159,8 @@ class AdminPage(webapp2.RequestHandler):
 				else:
 					self.display_error("The specified message set was not found.")
 		elif rel == "add_global_message":
-			message_set = self.request.get("message-set", "")
-			if message_set == "":
-				return self.display_error("Missing request parameter: message-set")
-			title = self.request.get("title", "")
-			if title == "":
-				return self.display_error("Missing request parameter: title")
-			body = self.request.get("body", "")
-			if body == "":
-				return self.display_error("Missing request parameter: body")
-			key = self.safe_get_key("Template")
-			if key != None:
+			succ, message_set, title, body, key = self.get_reqs_key("message-set", "title", "body", "Template")
+			if succ:
 				templ = key.get()
 				if message_set not in templ.message_sets:
 					return self.display_error("Specified message set does not exist.")
@@ -178,20 +182,18 @@ class AdminPage(webapp2.RequestHandler):
 				key.delete()
 				self.redirect("/administration/template?key=%s#global-messages" % key.parent().urlsafe())
 			else:
-				message_set = self.request.get("message-set", "")
-				if message_set == "":
-					return self.display_error("Missing request parameter: message-set")
-				title = self.request.get("title", "")
-				if title == "":
-					return self.display_error("Missing request parameter: title")
-				body = self.request.get("body", "")
-				if body == "":
-					return self.display_error("Missing request parameter: body")
-				msg.msid = message_set
-				msg.title = title
-				msg.body = body
-				msg.put()
-				self.redirect("/administration/template?key=%s#global-messages" % key.parent().urlsafe())
+				succ, message_set, title, body = self.get_reqs("message-set", "title", "body")
+				if succ:
+					msg.msid = message_set
+					msg.title = title
+					msg.body = body
+					msg.put()
+					self.redirect("/administration/template?key=%s#global-messages" % key.parent().urlsafe())
+		elif rel == "new_character":
+			succ, name, avatar, key = self.get_reqs_key("name", "avatar", "Template")
+			if succ:
+				nkey = Character(name=name, avatar=avatar, parent=key).put()
+				self.redirect("/administration/character?key=%s" % nkey.urlsafe())
 		else:
 			self.response.headers["Content-Type"] = "text/plain"
 			self.response.write("ADMIN: %s: %s" % (rel, self.request.params))

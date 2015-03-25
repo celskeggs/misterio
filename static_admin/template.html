@@ -256,9 +256,9 @@
                   <tr><td colspan="4" style="text-align: center;"><div style="margin-bottom: 0px;" class="alert alert-warning">No characters defined.</div></td></tr>
                 {% endif %}
                 {% for character in characters %}
-                  <tr><td><span class="label label-default">{{ character.key.id() }} </span></td><td>{{ character.name }}</td><td>{{ character.avatar }}</td><td><a href="/administration/character?key={{ character.key.urlsafe() }}" class="btn btn-primary">View/Edit</a></td></tr>
+                  <tr><td><span class="label label-default">{{ character.key.id() }} </span></td><td>{{ character.name }}</td><td>{{ character.avatar }}</td><td><a href="/administration/character?key={{ character.key.urlsafe() }}" style="width: 100%;" class="btn btn-primary">View/Edit</a></td></tr>
                 {% endfor %}
-                <form method="post" action="/administration/new_character"><tr><td><span class="label label-default">NEW</span></td><td><input class="form-control" type="text" name="name" placeholder="enter name..."></td><td><select name="avatar" class="form-control"><option>unselected</option>{% for avatar in avatars %}<option>{{ avatar }}</option>{% endfor %}</select></td><td><button type="submit" class="btn btn-primary" style="width: 100%;">Create</button></td></tr></form>
+                <form method="post" action="/administration/new_character"><input type="hidden" name="key" value="{{ template.key.urlsafe() }}"><tr><td><span class="label label-default">NEW</span></td><td><input class="form-control" type="text" name="name" placeholder="enter name..."></td><td><select name="avatar" class="form-control"><option>unselected</option>{% for avatar in avatars %}<option>{{ avatar }}</option>{% endfor %}</select></td><td><button type="submit" class="btn btn-primary" style="width: 100%;">Create</button></td></tr></form>
               </tbody>
             </table>
           </div>
@@ -270,18 +270,18 @@
         </div>
         <div class="panel-body">
           <div class="alert alert-info">Each <strong>avatar</strong> is predefined in the source code. Contact your developer to add or remove entries.</div>
-          <div class="media">
-            {% for avatar in avatars %}
-              <div class="media-left">
-                <a href="#">
-                  <img class="media-object" src="/img/{{ avatar }}">
-                </a>
+          {% for avatar in avatars %}
+            <div class="col-xs-4">
+              <div class="media">
+                <div class="media-left">
+                  <img class="media-object user-avatar" src="/img/{{ avatar }}">
+                </div>
+                <div class="media-body">
+                  <h4 class="media-heading" style="font-family: Monospaced;">{{ avatar }}</h4>
+                </div>
               </div>
-              <div class="media-body">
-                <h4 class="media-heading">{{ avatar }}</h4>
-              </div>
-            {% endfor %}
-          </div>
+            </div>
+          {% endfor %}
         </div>
       </div>
     </div>
