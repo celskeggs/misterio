@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Administration Page</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a id="mystery-title" class="navbar-brand" href="#">Manage Template</a>
+      </div>
+      <div class="collapse navbar-collapse" ng-controller="Navbar">
+        <ul class="nav navbar-nav navbar-right">
+          <li style="padding-right: 10px;"><button onclick="document.location='/';" class="btn btn-default navbar-btn">Volver al Juego</button></li>
+          <li><button onclick="document.location='/logoff';" class="btn btn-warning navbar-btn">Salir</button></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="main-content">
+
+      <div>
+        <noscript>
+          <div class="alert alert-danger"><strong>JavaScript Disabled!</strong> This site uses JavaScript to provide an efficient and responsive interface, please enable JavaScript!</div>
+        </noscript>
+      </div>
+
+      <ol class="breadcrumb">
+        <li><a href="/administration">Root</a></li>
+        <li class="active">Template: {{ template.name }}</li>
+      </ol>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Properties</h3>
+        </div>
+        <div class="panel-body">
+          <div class="form-horizontal">
+            <div class="alert alert-info">Every <strong>session</strong> is based on a <strong>template</strong>. Customize the template of a session to customize its <strong>characters</strong> and <strong>predefined messages</strong>.</div>
+            <div class="form-group">
+              <label for="templ_id" class="col-sm-2 control-label">Template Unique ID</label>
+              <div class="col-sm-10">
+                <input id="templ_id" disabled type="text" name="tid" class="form-control" value="{{ template.key.id() }}">
+              </div>
+            </div>
+            <form class="form-group" action="/administration/set_template_name" method="post">
+              <label for="new_name" class="col-sm-2 control-label">Template Name</label>
+              <div class="col-sm-8">
+                <input id="new_name" type="text" name="name" class="form-control" placeholder="Enter a name for the template..." value="{{ template.name }}">
+              </div>
+              <div class="col-sm-2">
+                <button style="width: 100%;" class="btn btn-warning" type="submit">Modify Name</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Actions</h3>
+        </div>
+        <div class="panel-body">
+          <div class="form-horizontal">
+            <div class="alert alert-info">A template can be duplicated to create a new template with all of the same configuration. This is recommended before starting a new year of sessions, so that you can modify that year's sessions without inadvertently modifying other sessions.</div>
+            <form class="form-group" action="/administration/duplicate_name" method="post">
+              <label for="duplicate_templ" class="col-sm-2 control-label">Duplicate Template</label>
+              <div class="col-sm-8">
+                <input id="duplicate_templ" type="text" name="name" class="form-control" placeholder="Enter a name for the new template...">
+              </div>
+              <div class="col-sm-2">
+                <button style="width: 100%;" class="btn btn-primary" type="submit">Duplicate Template</button>
+              </div>
+            </form>
+            <form class="form-group" action="/administration/new_session" method="post">
+              <label for="new_session" class="col-sm-2 control-label">New Session</label>
+              <div class="col-sm-8">
+                <input id="new_session" type="text" name="name" class="form-control" placeholder="Enter a name for the new session...">
+              </div>
+              <div class="col-sm-2">
+                <button style="width: 100%;" class="btn btn-primary" type="submit">New Session</button>
+              </div>
+            </form>
+            <div class="form-group">
+              <label for="new_name" class="col-sm-2 control-label">Delete Template</label>
+              <form class="col-sm-3" action="/administration/prepare_delete_template" method="get">
+                <button style="width: 100%;" class="btn btn-danger" type="submit">Delete Template</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Message Sets</h3>
+        </div>
+        <div class="panel-body">
+          <div class="alert alert-info">A <strong>message set</strong> is a set of predefined messages that can be published as a batch to users. This could be a newspaper article, predefined private information, introductory messages, or anything else. See the characters section and global messages section below to specify the messages in each message set.</div>
+          <div class="form-horizontal">
+            {% if template.message_sets %}
+              <div class="list-group">
+                {% for message_set in template.message_sets %}
+                  <form class="list-group-item" action="/administration/delete_message_set" method="post">
+                    <input type="hidden" name="key" value="{{ template.key.urlsafe() }}" />
+                    <input type="hidden" name="name" value="{{ message_set }}" />
+                    <button class="btn btn-danger pull-right" type="submit">Remove</button>
+                    <div style="margin-top: 7px; margin-bottom: 7px;">{{ message_set }}</div>
+                  </form>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="alert alert-warning">No message sets currently exist.</div>
+            {% endif %}
+            <form class="input-group" action="/administration/add_message_set" method="post">
+              <input type="hidden" name="key" value="{{ template.key.urlsafe() }}">
+              <input type="text" name="name" class="form-control" placeholder="Message set name...">
+              <span class="input-group-btn">
+                <button class="btn btn-primary" type="submit">Add Message Set</button>
+              </span>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Global Messages</h3>
+        </div>
+        <div class="panel-body">
+          <div class="alert alert-info">A <strong>global message</strong> is a predefined message in a specific <strong>message group</strong> that goes to all characters in the session when it is published.</div>
+          <div class="form-horizontal">
+            {% if global_messages %}
+              <table class="table">
+                <thead>
+                  <tr><th>#</th><th>Title</th><th>Message Set</th><th>Actions</th></tr>
+                </thead>
+                <tbody>
+                  {% for global_message in global_messages %}
+                    <tr><td>{{ global_message.key.id() }}</td><td>{{ global_message.title }}</td><td>{{ global_message.msid }}</td><td>todo</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            {% else %}
+              <div class="alert alert-warning">No global messages currently exist.</div>
+            {% endif %}
+            {% if template.message_sets %}
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h3 class="panel-title">Add Global Message</h3>
+                </div>
+                <div class="panel-body">
+                  <form class="form-horizontal" action="/administration/prepare_add_global_message" method="post">
+                    <input type="hidden" name="key" value="{{ template.key.urlsafe() }}">
+                    <div class="form-group">
+                      <label for="message_set_spec" class="col-sm-2 control-label">Message Set</label>
+                      <div class="col-sm-10">
+                        <select name="message-set" class="form-control" id="message_set_spec">
+                          {% for message_set in template.message_sets %}
+                            <option>{{ message_set }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="message_title" class="col-sm-2 control-label">Title</label>
+                      <div class="col-sm-10">
+                        <input id="message_title" type="text" name="body" class="form-control"></textarea>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="message_body" class="col-sm-2 control-label">Body</label>
+                      <div class="col-sm-10">
+                        <textarea id="message_body" name="body" class="form-control" rows="3"></textarea>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="col-sm-10 col-sm-offset-2">
+                        <button class="btn btn-primary" type="submit">Add Global Message</button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            {% else %}
+              <div class="alert alert-warning" style="margin-bottom: 0px;">You must create at least one message set before you can create a global message.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/lib/jquery/jquery.js"></script>
+  <script src="/lib/underscore/underscore.js"></script>
+  <script src="/lib/bootstrap/bootstrap.js"></script>
+</body>
+</html>
+{% endautoescape %}
