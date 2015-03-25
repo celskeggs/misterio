@@ -162,6 +162,8 @@ class AdminPage(webapp2.RequestHandler):
 			succ, message_set, title, body, key = self.get_reqs_key("message-set", "title", "body", "Template")
 			if succ:
 				templ = key.get()
+				if templ == None:
+					return self.display_error("Specified template does not exist.")
 				if message_set not in templ.message_sets:
 					return self.display_error("Specified message set does not exist.")
 				msg = Message(parent=key, msid=message_set, cid=None, title=title, body=body)
@@ -194,6 +196,22 @@ class AdminPage(webapp2.RequestHandler):
 			if succ:
 				nkey = Character(name=name, avatar=avatar, parent=key).put()
 				self.redirect("/administration/character?key=%s" % nkey.urlsafe())
+		elif rel == "add_character_message":
+			succ, message_set, title, body, key = self.get_reqs_key("message-set", "title", "body", "Template/Character")
+			if succ:
+				char = key.get()
+				if char == None:
+					return self.display_error("Specified character does not exist.")
+				templ = key.parent().get()
+				if templ == None:
+					return self.display_error("Specified template does not exist.")
+				if message_set not in templ.message_sets:
+					return self.display_error("Specified message set does not exist.")
+				msg = Message(parent=key.parent(), msid=message_set, cid=key, title=title, body=body)
+				msg.put()
+				self.redirect("/administration/character?key=%s#global-messages" % key.urlsafe())
+		elif rel == "update_character_message":
+			About to implement this, and also shift messages to be under a character instead of using cid.
 		else:
 			self.response.headers["Content-Type"] = "text/plain"
 			self.response.write("ADMIN: %s: %s" % (rel, self.request.params))
@@ -218,6 +236,21 @@ class AdminPage(webapp2.RequestHandler):
 					self.display_error("The template that you are trying to view either does not exist or has been deleted.")
 				else:
 					self.response.write(jt.render({"template": template, "global_messages": global_messages, "characters": characters, "avatars": avatars}))
+		elif rel == "character":
+			self.response.headers["Content-Type"] = "text/html"
+			jt = JINJA_ENVIRONMENT.get_template('character.html')
+
+			key = self.safe_get_key("Template/Character")
+			if key != None:
+				character = key.get()
+				template = key.parent().get()
+				if character == None:
+					self.display_error("The character that you are trying to view either does not exist or has been deleted.")
+				elif template == None:
+					self.display_error("The template of the character that you are trying to view either does not exist or has been deleted.")
+				else:
+					character_messages = Message.query(Message.cid == key, ancestor=key.parent()).fetch()
+					self.response.write(jt.render({"template": template, "character": character, "character_messages": character_messages}))
 		else:
 			self.response.headers["Content-Type"] = "text/plain"
 			self.response.write("ADMIN: %s" % rel)

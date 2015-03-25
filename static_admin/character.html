@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Administration Page: Manage Character</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a id="mystery-title" class="navbar-brand" href="#">Manage Character</a>
+      </div>
+      <div class="collapse navbar-collapse" ng-controller="Navbar">
+        <ul class="nav navbar-nav navbar-right">
+          <li style="padding-right: 10px;"><button onclick="document.location='/';" class="btn btn-default navbar-btn">Volver al Juego</button></li>
+          <li><button onclick="document.location='/logoff';" class="btn btn-warning navbar-btn">Salir</button></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="main-content">
+
+      <div>
+        <noscript>
+          <div class="alert alert-danger"><strong>JavaScript Disabled!</strong> This site uses JavaScript to provide an efficient and responsive interface, please enable JavaScript!</div>
+        </noscript>
+      </div>
+
+      <ol class="breadcrumb">
+        <li><a href="/administration">Root</a></li>
+        <li><a href="/administration/template?key={{ template.key.urlsafe() }}">Template: {{ template.name }}</a></li>
+        <li class="active">Character: {{ character.name }}</li>
+      </ol>
+
+      <a name="properties"></a>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Properties</h3>
+        </div>
+        <div class="panel-body">
+          <div class="form-horizontal">
+            <div class="alert alert-info">Every <strong>character</strong> is defined on a <strong>template</strong>. In a session, a specific <strong>player</strong> is assigned to the character, and specific <strong>posts</strong> can be made by the character.</div>
+            <div class="form-group">
+              <label for="templ_id" class="col-sm-2 control-label">Character Unique ID</label>
+              <div class="col-sm-10">
+                <input id="templ_id" disabled type="text" name="tid" class="form-control" value="{{ character.key.id() }}">
+              </div>
+            </div>
+            <form class="form-group" action="/administration/set_character_name" method="post">
+              <label for="new_name" class="col-sm-2 control-label">Character Name</label>
+              <div class="col-sm-8">
+                <input id="new_name" type="text" name="name" class="form-control" placeholder="Enter a name for the character..." value="{{ character.name }}">
+              </div>
+              <div class="col-sm-2">
+                <button style="width: 100%;" class="btn btn-warning" type="submit">Modify Name</button>
+              </div>
+            </form>
+            <form class="form-group" action="/administration/set_character_avatar" method="post">
+              <label for="new_avatar" class="col-sm-2 control-label">Character Avatar</label>
+              <div class="col-sm-8">
+                <input id="new_avatar" type="text" name="name" class="form-control" placeholder="Enter an avatar for the character..." value="{{ character.avatar }}">
+              </div>
+              <div class="col-sm-2">
+                <button style="width: 100%;" class="btn btn-warning" type="submit">Modify Avatar</button>
+              </div>
+            </form>
+            <div class="form-group">
+              <label class="col-sm-2 control-label">Avatar Preview</label>
+              <div class="col-sm-2">
+                <img src="/img/{{ character.avatar }}" class="user-avatar" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <a name="actions"></a>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Actions</h3>
+        </div>
+        <div class="panel-body">
+          <div class="form-horizontal">
+            <div class="alert alert-info">A character is assigned to a real <strong>player</strong> in a specific <strong>session</strong>. The template itself is not connected to a player.</div>
+            <form class="form-group" action="/administration/duplicate_character" method="post">
+              <label for="duplicate_char" class="col-sm-2 control-label">Duplicate Character</label>
+              <div class="col-sm-8">
+                <input id="duplicate_char" type="text" name="name" class="form-control" placeholder="Enter a name for the new character...">
+              </div>
+              <div class="col-sm-2">
+                <button style="width: 100%;" class="btn btn-primary" type="submit">Duplicate Character</button>
+              </div>
+            </form>
+            <div class="form-group">
+              <label for="new_name" class="col-sm-2 control-label">Delete Character</label>
+              <form class="col-sm-3" action="/administration/delete_character" method="post">
+                <button style="width: 100%;" class="btn btn-danger" type="submit">Delete Character</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <a name="global-messages"></a>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Character Messages</h3>
+        </div>
+        <div class="panel-body">
+          <div class="alert alert-info">A <strong>character message</strong> is a predefined message in a specific <strong>message group</strong> that only goes to one specific character in the session when it is published.</div>
+          <div class="form-horizontal">
+            {% if character_messages %}
+              {% for character_message in character_messages %}
+                <div class="panel panel-default">
+                  <div class="panel-heading">
+                    <h3 class="panel-title">{{ character_message.key.id() }} in {{ character_message.msid }}</h3>
+                  </div>
+                  <div class="panel-body">
+                    <form class="form-horizontal" action="/administration/update_character_message" method="post">
+                      <input type="hidden" name="key" value="{{ character_message.key.urlsafe() }}">
+                      <div class="form-group">
+                        <label for="message_set_spec" class="col-sm-2 control-label">Message Set</label>
+                        <div class="col-sm-10">
+                          <select name="message-set" class="form-control" id="message_set_spec">
+                            <option selected>{{ character_message.msid }}</option>
+                            {% for message_set in template.message_sets %}
+                              {% if message_set != character_message.msid %}
+                                <option {% if character_message.msid == message_set %} selected="selected"{% endif %}>{{ message_set }}</option>
+                              {% endif %}
+                            {% endfor %}
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="message_title" class="col-sm-2 control-label">Title</label>
+                        <div class="col-sm-10">
+                          <input id="message_title" type="text" name="title" class="form-control" value="{{ character_message.title }}">
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="message_body" class="col-sm-2 control-label">Body</label>
+                        <div class="col-sm-10">
+                          <textarea id="message_body" name="body" class="form-control" rows="3">{{ character_message.body }}</textarea>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <div class="col-sm-3 col-sm-offset-2">
+                          <button style="width: 100%;" name="mode" class="btn btn-primary" type="submit" value="update">Update Character Message</button>
+                        </div>
+                        <div class="col-sm-3">
+                          <button style="width: 100%;" name="mode" class="btn btn-danger" type="submit" value="delete">Delete Character Message</button>
+                        </div>
+                        <div class="col-sm-3">
+                          <button style="width: 100%;" name="mode" class="btn btn-warning" type="reset">Reset</button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="alert alert-warning">No character messages currently exist.</div>
+            {% endif %}
+            {% if template.message_sets %}
+              <div class="panel panel-default">
+                <div class="panel-heading">
+                  <h3 class="panel-title">Add Character Message</h3>
+                </div>
+                <div class="panel-body">
+                  <form class="form-horizontal" action="/administration/add_character_message" method="post">
+                    <input type="hidden" name="key" value="{{ character.key.urlsafe() }}">
+                    <div class="form-group">
+                      <label for="message_set_spec" class="col-sm-2 control-label">Message Set</label>
+                      <div class="col-sm-10">
+                        <select name="message-set" class="form-control" id="message_set_spec">
+                          {% for message_set in template.message_sets %}
+                            <option>{{ message_set }}</option>
+                          {% endfor %}
+                        </select>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="message_title" class="col-sm-2 control-label">Title</label>
+                      <div class="col-sm-10">
+                        <input id="message_title" type="text" name="title" class="form-control">
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label for="message_body" class="col-sm-2 control-label">Body</label>
+                      <div class="col-sm-10">
+                        <textarea id="message_body" name="body" class="form-control" rows="3"></textarea>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <div class="col-sm-3 col-sm-offset-2">
+                        <button style="width: 100%;" class="btn btn-primary" type="submit">Add Character Message</button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            {% else %}
+              <div class="alert alert-warning" style="margin-bottom: 0px;">You must create at least one message set before you can create a character message. To do so, go back to the template page and add a message set there.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/lib/jquery/jquery.js"></script>
+  <script src="/lib/underscore/underscore.js"></script>
+  <script src="/lib/bootstrap/bootstrap.js"></script>
+</body>
+</html>
+{% endautoescape %}
