@@ -43,6 +43,7 @@
         <li class="active">Template: {{ template.name }}</li>
       </ol>
 
+      <a name="properties"></a>
       <div class="panel panel-default">
         <div class="panel-heading">
           <h3 class="panel-title">Properties</h3>
@@ -68,6 +69,7 @@
           </div>
         </div>
       </div>
+      <a name="actions"></a>
       <div class="panel panel-default">
         <div class="panel-heading">
           <h3 class="panel-title">Actions</h3>
@@ -102,6 +104,7 @@
           </div>
         </div>
       </div>
+      <a name="message-sets"></a>
       <div class="panel panel-default">
         <div class="panel-heading">
           <h3 class="panel-title">Message Sets</h3>
@@ -133,6 +136,7 @@
           </div>
         </div>
       </div>
+      <a name="global-messages"></a>
       <div class="panel panel-default">
         <div class="panel-heading">
           <h3 class="panel-title">Global Messages</h3>
@@ -141,16 +145,54 @@
           <div class="alert alert-info">A <strong>global message</strong> is a predefined message in a specific <strong>message group</strong> that goes to all characters in the session when it is published.</div>
           <div class="form-horizontal">
             {% if global_messages %}
-              <table class="table">
-                <thead>
-                  <tr><th>#</th><th>Title</th><th>Message Set</th><th>Actions</th></tr>
-                </thead>
-                <tbody>
-                  {% for global_message in global_messages %}
-                    <tr><td>{{ global_message.key.id() }}</td><td>{{ global_message.title }}</td><td>{{ global_message.msid }}</td><td>todo</td></tr>
-                  {% endfor %}
-                </tbody>
-              </table>
+              {% for global_message in global_messages %}
+                <div class="panel panel-default">
+                  <div class="panel-heading">
+                    <h3 class="panel-title">{{ global_message.key.id() }} in {{ global_message.msid }}</h3>
+                  </div>
+                  <div class="panel-body">
+                    <form class="form-horizontal" action="/administration/update_global_message" method="post">
+                      <input type="hidden" name="key" value="{{ global_message.key.urlsafe() }}">
+                      <div class="form-group">
+                        <label for="message_set_spec" class="col-sm-2 control-label">Message Set</label>
+                        <div class="col-sm-10">
+                          <select name="message-set" class="form-control" id="message_set_spec">
+                            <option selected>{{ global_message.msid }}</option>
+                            {% for message_set in template.message_sets %}
+                              {% if message_set != global_message.msid %}
+                                <option {% if global_message.msid == message_set %} selected="selected"{% endif %}>{{ message_set }}</option>
+                              {% endif %}
+                            {% endfor %}
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="message_title" class="col-sm-2 control-label">Title</label>
+                        <div class="col-sm-10">
+                          <input id="message_title" type="text" name="title" class="form-control" value="{{ global_message.title }}">
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label for="message_body" class="col-sm-2 control-label">Body</label>
+                        <div class="col-sm-10">
+                          <textarea id="message_body" name="body" class="form-control" rows="3">{{ global_message.body }}</textarea>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <div class="col-sm-3 col-sm-offset-2">
+                          <button style="width: 100%;" name="mode" class="btn btn-primary" type="submit" value="update">Update Global Message</button>
+                        </div>
+                        <div class="col-sm-3">
+                          <button style="width: 100%;" name="mode" class="btn btn-danger" type="submit" value="delete">Delete Global Message</button>
+                        </div>
+                        <div class="col-sm-3">
+                          <button style="width: 100%;" name="mode" class="btn btn-warning" type="reset">Reset</button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              {% endfor %}
             {% else %}
               <div class="alert alert-warning">No global messages currently exist.</div>
             {% endif %}
@@ -160,7 +202,7 @@
                   <h3 class="panel-title">Add Global Message</h3>
                 </div>
                 <div class="panel-body">
-                  <form class="form-horizontal" action="/administration/prepare_add_global_message" method="post">
+                  <form class="form-horizontal" action="/administration/add_global_message" method="post">
                     <input type="hidden" name="key" value="{{ template.key.urlsafe() }}">
                     <div class="form-group">
                       <label for="message_set_spec" class="col-sm-2 control-label">Message Set</label>
@@ -175,7 +217,7 @@
                     <div class="form-group">
                       <label for="message_title" class="col-sm-2 control-label">Title</label>
                       <div class="col-sm-10">
-                        <input id="message_title" type="text" name="body" class="form-control"></textarea>
+                        <input id="message_title" type="text" name="title" class="form-control">
                       </div>
                     </div>
                     <div class="form-group">
@@ -185,8 +227,8 @@
                       </div>
                     </div>
                     <div class="form-group">
-                      <div class="col-sm-10 col-sm-offset-2">
-                        <button class="btn btn-primary" type="submit">Add Global Message</button>
+                      <div class="col-sm-3 col-sm-offset-2">
+                        <button style="width: 100%;" class="btn btn-primary" type="submit">Add Global Message</button>
                       </div>
                     </div>
                   </form>
@@ -194,6 +236,23 @@
               </div>
             {% else %}
               <div class="alert alert-warning" style="margin-bottom: 0px;">You must create at least one message set before you can create a global message.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Characters</h3>
+        </div>
+        <div class="panel-body">
+          <div class="alert alert-info">Each <strong>character</strong> is predefined in the template, and in the actual session is connected to an actual player to be controlled. Each character has a list of <strong>predefined messages</strong> from each message set, which that character, and only that character, will receive when the message set is published.</div>
+          <div class="form-horizontal">
+            {% if characters %}
+              {% for character in characters %}
+                {{ character }}
+              {% endfor %}
+            {% else %}
+              <div class="alert alert-warning">No characters currently exist.</div>
             {% endif %}
           </div>
         </div>

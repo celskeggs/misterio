@@ -128,7 +128,7 @@ class AdminPage(webapp2.RequestHandler):
 				templ = key.get()
 				templ.message_sets.append(name)
 				templ.put()
-				self.redirect("/administration/template?key=%s" % key.urlsafe())
+				self.redirect("/administration/template?key=%s#message-sets" % key.urlsafe())
 		elif rel == "delete_message_set":
 			name = self.request.get("name", "")
 			if name == "":
@@ -139,12 +139,59 @@ class AdminPage(webapp2.RequestHandler):
 				if name in templ.message_sets:
 					templ.message_sets.remove(name)
 					templ.put()
-					self.redirect("/administration/template?key=%s" % key.urlsafe())
+					self.redirect("/administration/template?key=%s#message-sets" % key.urlsafe())
 				else:
 					self.display_error("The specified message set was not found.")
+		elif rel == "add_global_message":
+			message_set = self.request.get("message-set", "")
+			if message_set == "":
+				return self.display_error("Missing request parameter: message-set")
+			title = self.request.get("title", "")
+			if title == "":
+				return self.display_error("Missing request parameter: title")
+			body = self.request.get("body", "")
+			if body == "":
+				return self.display_error("Missing request parameter: body")
+			key = self.safe_get_key("Template")
+			if key != None:
+				templ = key.get()
+				if message_set not in templ.message_sets:
+					return self.display_error("Specified message set does not exist.")
+				msg = Message(parent=key, msid=message_set, cid=None, title=title, body=body)
+				msg.put()
+				self.redirect("/administration/template?key=%s#global-messages" % key.urlsafe())
+		elif rel == "update_global_message":
+			mode = self.request.get("mode", "")
+			if mode == "":
+				return self.display_error("Missing request parameter: mode")
+			elif mode not in ("update", "delete"):
+				return self.display_error("Invalid mode: must be update or delete.")
+			key = self.safe_get_key("Template/Message")
+			if key == None: return
+			msg = key.get()
+			if msg == None:
+				return self.display_error("The target message does not exist.")
+			if mode == "delete":
+				key.delete()
+				self.redirect("/administration/template?key=%s#global-messages" % key.parent().urlsafe())
+			else:
+				message_set = self.request.get("message-set", "")
+				if message_set == "":
+					return self.display_error("Missing request parameter: message-set")
+				title = self.request.get("title", "")
+				if title == "":
+					return self.display_error("Missing request parameter: title")
+				body = self.request.get("body", "")
+				if body == "":
+					return self.display_error("Missing request parameter: body")
+				msg.msid = message_set
+				msg.title = title
+				msg.body = body
+				msg.put()
+				self.redirect("/administration/template?key=%s#global-messages" % key.parent().urlsafe())
 		else:
 			self.response.headers["Content-Type"] = "text/plain"
-			self.response.write("ADMIN: %s" % rel)
+			self.response.write("ADMIN: %s: %s" % (rel, self.request.params))
 	def get(self, rel=""):
 		if rel == "":
 			self.response.headers["Content-Type"] = "text/html"
@@ -161,10 +208,11 @@ class AdminPage(webapp2.RequestHandler):
 			if key != None:
 				template = key.get()
 				global_messages = Message.query(Message.cid == None, ancestor=key).fetch()
+				characters = Character.query(ancestor=key).fetch()
 				if template == None:
 					self.display_error("The template that you are trying to view either does not exist or has been deleted.")
 				else:
-					self.response.write(jt.render({"template": template, "global_messages": global_messages}))
+					self.response.write(jt.render({"template": template, "global_messages": global_messages, "characters": characters}))
 		else:
 			self.response.headers["Content-Type"] = "text/plain"
 			self.response.write("ADMIN: %s" % rel)
