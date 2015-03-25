@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Administration Page: Manage Session</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a id="mystery-title" class="navbar-brand" href="/administration">Manage Session</a>
+      </div>
+      <div class="collapse navbar-collapse" ng-controller="Navbar">
+        <ul class="nav navbar-nav navbar-right">
+          <li style="padding-right: 10px;"><button onclick="document.location='/';" class="btn btn-default navbar-btn">Volver al Juego</button></li>
+          <li><button onclick="document.location='/logoff';" class="btn btn-warning navbar-btn">Salir</button></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="main-content">
+
+      <div>
+        <noscript>
+          <div class="alert alert-danger"><strong>JavaScript Disabled!</strong> This site uses JavaScript to provide an efficient and responsive interface, please enable JavaScript!</div>
+        </noscript>
+      </div>
+
+      <ol class="breadcrumb">
+        <li><a href="/administration">Root</a></li>
+        <li class="active">Session: {{ session.name }}</li>
+      </ol>
+
+      <a name="properties"></a>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Properties</h3>
+        </div>
+        <div class="panel-body">
+          <div class="form-horizontal">
+            <div class="alert alert-info">Every <strong>session</strong> is based on a <strong>template</strong>. Customize the template of a session to customize its <strong>characters</strong> and <strong>predefined messages</strong>. Each session has an individual set of <strong>character assignments</strong>, <strong>currently-published message sets</strong>, and <strong>posts</strong>.</div>
+            <div class="form-group">
+              <label for="sess_id" class="col-sm-2 control-label">Session Unique ID</label>
+              <div class="col-sm-10">
+                <input id="sess_id" disabled type="text" name="tid" class="form-control" value="{{ session.key.id() }}">
+              </div>
+            </div>
+            <div class="alert alert-warning">Sessions cannot currently be switched between templates. This is a planned feature.</div>
+            <div class="form-group">
+              <label for="templ_id" class="col-sm-2 control-label">Session Template</label>
+              <div class="col-sm-8">
+                <input id="templ_id" disabled type="text" name="tid" class="form-control" value="{{ template.name }}">
+              </div>
+              <div class="col-sm-2">
+                <a style="width: 100%;" class="btn btn-primary" href="/administration/template?key={{ template.key.urlsafe() }}">View/Edit Template</a>
+              </div>
+            </div>
+            <form class="form-group" action="/administration/set_session_name" method="post">
+              <label for="new_name" class="col-sm-2 control-label">Session Name</label>
+              <div class="col-sm-8">
+                <input id="new_name" type="text" name="name" class="form-control" placeholder="Enter a name for the session..." value="{{ session.name }}">
+              </div>
+              <div class="col-sm-2">
+                <input type="hidden" name="key" value="{{ session.key.urlsafe() }}">
+                <button style="width: 100%;" class="btn btn-warning" type="submit">Modify Name</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <a name="actions"></a>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Actions</h3>
+        </div>
+        <div class="panel-body">
+          <div class="form-horizontal">
+            <div class="alert alert-info">There is no easy way to reset a session. Instead, create a new session based on the same template - it will have all of the same configuration, but will allow you to specify different <strong>players</strong>.</div>
+            <div class="alert alert-warning">It is recommended that you <strong>do not delete sessions</strong>. It is likely a better idea to keep them for their historical record.</div>
+            <div class="form-group">
+              <label for="new_name" class="col-sm-2 control-label">Delete Session</label>
+              <form class="col-sm-3" action="/administration/prepare_delete_session" method="get">
+                <input type="hidden" name="key" value="{{ session.key.urlsafe() }}">
+                <button style="width: 100%;" class="btn btn-danger" type="submit">Delete Session</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <a name="message-sets"></a>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Message Sets</h3>
+        </div>
+        <div class="panel-body">
+          <div class="alert alert-info">A <strong>message set</strong> is a set of predefined messages that can be published as a batch to users. This could be a newspaper article, predefined private information, introductory messages, or anything else. The messages can be customized on the <strong>template</strong>, and you can choose which ones should be <strong>published</strong> here. Players will only see messages from published message sets.</div>
+          <div class="form-horizontal">
+            {% if template.message_sets %}
+              <div class="list-group">
+                {% for message_set in template.message_sets %}
+                  <form class="list-group-item{% if message_set in session.activated %} active{% endif %}" action="/administration/toggle_message_set" method="post">
+                    <input type="hidden" name="key" value="{{ session.key.urlsafe() }}" />
+                    <input type="hidden" name="name" value="{{ message_set }}" />
+                    <button class="btn btn-danger pull-right" type="submit">{% if message_set in session.activated %}Unpublish{% else %}Publish{% endif %}</button>
+                    <div style="margin-top: 7px; margin-bottom: 7px;">{{ message_set }}</div>
+                  </form>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="alert alert-warning">No message sets currently exist. Modify the template to add some.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <a name="characters"></a>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Character Assignments</h3>
+        </div>
+        <div class="panel-body">
+          <div class="alert alert-info">Each <strong>character</strong> is predefined in the template, and can be assigned to a <strong>player</strong> in each session. A player is designated by their <strong>email address</strong>, and can sign in via a Google Account or Google Apps Domain Account with that email address.</div>
+          <div class="form-horizontal">
+            <table class="table">
+              <thead>
+                <tr><th>#</th><th>Name</th><th>Avatar</th><th>Assignment</th><th>Actions</th></tr>
+              </thead>
+              <tbody>
+                {% if not characters %}
+                  <tr><td colspan="4" style="text-align: center;"><div style="margin-bottom: 0px;" class="alert alert-warning">No characters defined. Modify the template for this session to add characters.</div></td></tr>
+                {% endif %}
+                {% for character in characters %}
+                  <form method="post" action="/administration/assign_character"><input type="hidden" name="key" value="{{ session.key.urlsafe() }}"><tr><td><span class="label label-default">{{ character.key.id() }} </span></td><td>{{ character.name }}</td><td>{{ character.avatar }}</td><td><input class="form-control" type="text" name="email" value="{{ assignment_map[character.key] }}"></td><td><div class="btn-group"><button class="btn btn-primary" type="submit">Assign</button><a href="/administration/character?key={{ character.key.urlsafe() }}" class="btn btn-info">View Template</a></div></td></tr></form>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <a name="global-messages"></a>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Posts</h3>
+        </div>
+        <div class="panel-body">
+          <div class="alert alert-info">A <strong>post</strong> is a message in a specific <strong>session</strong>, made by a specific <strong>character</strong> in that session, that goes to all characters in the session. A post can have a <strong>target character</strong>, and if so, can optionally <strong>require a reply</strong> from that character.</div>
+          <div class="alert alert-warning">Because of the potential number of posts, the listing is not displayed on this page. Click the button below to view a paginated listing.</div>
+          <a class="btn btn-warning" href="/administration/posts?key={{ session.key.urlsafe() }}">View full post listing</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/lib/jquery/jquery.js"></script>
+  <script src="/lib/underscore/underscore.js"></script>
+  <script src="/lib/bootstrap/bootstrap.js"></script>
+</body>
+</html>
+{% endautoescape %}

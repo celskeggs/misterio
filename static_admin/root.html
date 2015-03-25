@@ -73,12 +73,15 @@
         </div>
         <div class="panel-body">
           <div class="alert alert-info">A <strong>session</strong> is a particular instance of a game, played by <strong>a specific group of players</strong>, with its own distinct set of <strong>posts</strong>. </div>
-          <div class="list-group">
-            <a href="#" class="list-group-item">2014 Session A</a>
-            <a href="#" class="list-group-item">2014 Session B</a>
-            <a href="#" class="list-group-item">2015 Session for Block 5</a>
-            <a href="#" class="list-group-item">Prototype 2016 Session</a>
-          </div>
+          {% if sessions %}
+            <div class="list-group">
+              {% for session in sessions %}
+                <a href="/administration/session?key={{ session.key.urlsafe() }}" class="list-group-item">{{ session.name }}</a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="alert alert-warning">No sessions currently exist.</div>
+          {% endif %}
           <div class="alert alert-info" style="margin-bottom: 0px;">Click on a template (above) to be able to create a new session based on that template. All sessions must be based on an existing template.</div>
         </div>
       </div>

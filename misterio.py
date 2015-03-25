@@ -18,17 +18,19 @@ class Message(ndb.Model):
 	body = ndb.TextProperty(indexed=False, required=True)
 	charspec = ndb.ComputedProperty(lambda self: self.key.parent().kind() == "Character")
 
+class Assignment(ndb.Model): # not stored in database - stored in Session entity.
+	cid = ndb.KeyProperty(required=True, kind=Character)
+	player_email = ndb.StringProperty(indexed=True, required=True)
 class Session(ndb.Model):
 	template = ndb.KeyProperty(required=True, kind=Template)
 	name = ndb.StringProperty(required=True)
 	activated = ndb.StringProperty(repeated=True)
-class Assignment(ndb.Model):
-	cid = ndb.KeyProperty(required=True, kind=Character)
-	player = ndb.UserProperty(required=True)
+	assignments = ndb.StructuredProperty(Assignment, repeated=True)
 class Post(ndb.Model):
 	cid = ndb.KeyProperty(required=True, kind=Character)
-	target = ndb.KeyProperty(kind=Character)
+	target = ndb.KeyProperty(required=False, kind=Character)
 	msg = ndb.TextProperty(required=True, indexed=False)
+	needs_reply = ndb.BooleanProperty(required=True)
 
 class MainPage(webapp2.RequestHandler):
 	def get(self):
@@ -137,6 +139,7 @@ class AdminPage(webapp2.RequestHandler):
 		jt = JINJA_ENVIRONMENT.get_template('error.html')
 		self.response.write(jt.render({"error": error}))
 	def post(self, rel=""):
+		# Template-related calls
 		if rel == "new_template":
 			succ, name = self.get_reqs("name")
 			if succ:
@@ -300,6 +303,15 @@ class AdminPage(webapp2.RequestHandler):
 					ckey.delete()
 				key.delete()
 				self.redirect("/administration")
+		# Session-related calls
+		elif rel == "new_session":
+			succ, name, key = self.get_reqs_key("name", "Template")
+			if succ:
+				template = key.get()
+				if template == None:
+					return self.display_error("The template that you are trying to use either does not exist or has been deleted.")
+				session = Session(template=key, name=name, activated=[], assignments=[]).put()
+				self.redirect("/administration/session?key=%s" % session.urlsafe())
 		else:
 			self.response.headers["Content-Type"] = "text/plain"
 			self.response.write("ADMIN: %s: %s" % (rel, self.request.params))
@@ -309,8 +321,9 @@ class AdminPage(webapp2.RequestHandler):
 			jt = JINJA_ENVIRONMENT.get_template('root.html')
 
 			templates = Template.query().fetch()
+			sessions = Session.query().fetch()
 
-			self.response.write(jt.render({"templates": templates}))
+			self.response.write(jt.render({"templates": templates, "sessions": sessions}))
 		elif rel == "template":
 			self.response.headers["Content-Type"] = "text/html"
 			jt = JINJA_ENVIRONMENT.get_template('template.html')
@@ -324,6 +337,24 @@ class AdminPage(webapp2.RequestHandler):
 					self.display_error("The template that you are trying to view either does not exist or has been deleted.")
 				else:
 					self.response.write(jt.render({"template": template, "global_messages": global_messages, "characters": characters, "avatars": avatars}))
+		elif rel == "session":
+			self.response.headers["Content-Type"] = "text/html"
+			jt = JINJA_ENVIRONMENT.get_template('session.html')
+
+			key = self.safe_get_key("Session")
+			if key != None:
+				session = key.get()
+				if session == None:
+					return self.display_error("The session that you are trying to view either does not exist or has been deleted.")
+				template = session.template.get()
+				template_names = Template.query(projection=[Template.name]).fetch()
+				characters = Character.query(ancestor=session.template).fetch()
+				if template == None:
+					self.display_error("The template of the session that you are trying to view either does not exist or has been deleted.")
+				else:
+					template_names = [templ.name for templ in template_names]
+					assignment_map = dict((assignment.cid, assignment.player_email) for assignment in session.assignments)
+					self.response.write(jt.render({"session": session, "template": template, "characters": characters, "assignment_map": assignment_map, "template_names": template_names}))
 		elif rel == "character":
 			self.response.headers["Content-Type"] = "text/html"
 			jt = JINJA_ENVIRONMENT.get_template('character.html')

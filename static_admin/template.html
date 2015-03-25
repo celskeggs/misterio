@@ -94,6 +94,7 @@
                 <input id="new_session" type="text" name="name" class="form-control" placeholder="Enter a name for the new session...">
               </div>
               <div class="col-sm-2">
+                <input type="hidden" name="key" value="{{ template.key.urlsafe() }}">
                 <button style="width: 100%;" class="btn btn-primary" type="submit">New Session</button>
               </div>
             </form>
