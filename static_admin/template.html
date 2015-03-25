@@ -18,7 +18,7 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a id="mystery-title" class="navbar-brand" href="#">Manage Template</a>
+        <a id="mystery-title" class="navbar-brand" href="/administration">Manage Template</a>
       </div>
       <div class="collapse navbar-collapse" ng-controller="Navbar">
         <ul class="nav navbar-nav navbar-right">
@@ -63,6 +63,7 @@
                 <input id="new_name" type="text" name="name" class="form-control" placeholder="Enter a name for the template..." value="{{ template.name }}">
               </div>
               <div class="col-sm-2">
+                <input type="hidden" name="key" value="{{ template.key.urlsafe() }}">
                 <button style="width: 100%;" class="btn btn-warning" type="submit">Modify Name</button>
               </div>
             </form>
@@ -77,12 +78,13 @@
         <div class="panel-body">
           <div class="form-horizontal">
             <div class="alert alert-info">A template can be duplicated to create a new template with all of the same configuration. This is recommended before starting a new year of sessions, so that you can modify that year's sessions without inadvertently modifying other sessions.</div>
-            <form class="form-group" action="/administration/duplicate_name" method="post">
+            <form class="form-group" action="/administration/duplicate_template" method="post">
               <label for="duplicate_templ" class="col-sm-2 control-label">Duplicate Template</label>
               <div class="col-sm-8">
                 <input id="duplicate_templ" type="text" name="name" class="form-control" placeholder="Enter a name for the new template...">
               </div>
               <div class="col-sm-2">
+                <input type="hidden" name="key" value="{{ template.key.urlsafe() }}">
                 <button style="width: 100%;" class="btn btn-primary" type="submit">Duplicate Template</button>
               </div>
             </form>
@@ -98,6 +100,7 @@
             <div class="form-group">
               <label for="new_name" class="col-sm-2 control-label">Delete Template</label>
               <form class="col-sm-3" action="/administration/prepare_delete_template" method="get">
+                <input type="hidden" name="key" value="{{ template.key.urlsafe() }}">
                 <button style="width: 100%;" class="btn btn-danger" type="submit">Delete Template</button>
               </form>
             </div>
@@ -240,6 +243,7 @@
           </div>
         </div>
       </div>
+      <a name="characters"></a>
       <div class="panel panel-default">
         <div class="panel-heading">
           <h3 class="panel-title">Characters</h3>
@@ -264,6 +268,7 @@
           </div>
         </div>
       </div>
+      <a name="avatars"></a>
       <div class="panel panel-default">
         <div class="panel-heading">
           <h3 class="panel-title">Avatars</h3>

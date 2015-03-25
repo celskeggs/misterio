@@ -18,7 +18,7 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a id="mystery-title" class="navbar-brand" href="#">Management Root</a>
+        <a id="mystery-title" class="navbar-brand" href="/administration">Management Root</a>
       </div>
       <div class="collapse navbar-collapse" ng-controller="Navbar">
         <ul class="nav navbar-nav navbar-right">
@@ -54,7 +54,7 @@
                 <a href="/administration/template?key={{ template.key.urlsafe() }}" class="list-group-item">{{ template.name }}</a>
               {% endfor %}
             </div>
-            <div class="alert alert-warning"><strong>Warning!</strong> Creating a new template here will not copy any existing data. Click on an existing template to be able to duplicate it.</div>
+            <div class="alert alert-warning"><strong>Warning!</strong> Creating a new template here will not copy any existing configuration. Click on an existing template to be able to duplicate it.</div>
           {% else %}
             <div class="alert alert-warning">No templates currently exist.</div>
           {% endif %}

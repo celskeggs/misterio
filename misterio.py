@@ -14,11 +14,12 @@ class Character(ndb.Model):
 	avatar = ndb.StringProperty(required=True)
 class Message(ndb.Model):
 	msid = ndb.StringProperty(indexed=True, required=True)
-	cid = ndb.KeyProperty(indexed=True, required=False, kind=Character)
 	title = ndb.StringProperty(indexed=False, required=True)
 	body = ndb.TextProperty(indexed=False, required=True)
+	charspec = ndb.ComputedProperty(lambda self: self.key.parent().kind() == "Character")
 
 class Session(ndb.Model):
+	template = ndb.KeyProperty(required=True, kind=Template)
 	name = ndb.StringProperty(required=True)
 	activated = ndb.StringProperty(repeated=True)
 class Assignment(ndb.Model):
@@ -141,6 +142,29 @@ class AdminPage(webapp2.RequestHandler):
 			if succ:
 				key = Template(name=name).put()
 				self.redirect("/administration/template?key=%s" % key.urlsafe())
+		elif rel == "set_template_name":
+			succ, name, key = self.get_reqs_key("name", "Template")
+			if succ:
+				templ = key.get()
+				templ.name = name
+				templ.put()
+				self.redirect("/administration/template?key=%s" % key.urlsafe())
+		elif rel == "duplicate_template":
+			succ, name, key = self.get_reqs_key("name", "Template")
+			if succ:
+				oldtemplate = key.get()
+				oldchars = Character.query(ancestor=key).fetch()
+				oldmsgs = Message.query(ancestor=key).fetch()
+				newkey = Template(name=name, message_sets=oldtemplate.message_sets).put()
+				for char in oldchars:
+					newchar = Character(name=char.name, avatar=char.avatar, parent=newkey).put()
+					for oldm in oldmsgs:
+						if oldm.key.parent() == char.key:
+							Message(msid=oldm.msid, title=oldm.title, body=oldm.body, parent=newchar).put()
+				for oldm in oldmsgs:
+					if oldm.key.parent() == key:
+						Message(msid=oldm.msid, title=oldm.title, body=oldm.body, parent=newkey).put()
+				self.redirect("/administration/template?key=%s#properties" % newkey.urlsafe())
 		elif rel == "add_message_set":
 			succ, name, key = self.get_reqs_key("name", "Template")
 			if succ:
@@ -166,7 +190,7 @@ class AdminPage(webapp2.RequestHandler):
 					return self.display_error("Specified template does not exist.")
 				if message_set not in templ.message_sets:
 					return self.display_error("Specified message set does not exist.")
-				msg = Message(parent=key, msid=message_set, cid=None, title=title, body=body)
+				msg = Message(parent=key, msid=message_set, title=title, body=body)
 				msg.put()
 				self.redirect("/administration/template?key=%s#global-messages" % key.urlsafe())
 		elif rel == "update_global_message":
@@ -207,11 +231,75 @@ class AdminPage(webapp2.RequestHandler):
 					return self.display_error("Specified template does not exist.")
 				if message_set not in templ.message_sets:
 					return self.display_error("Specified message set does not exist.")
-				msg = Message(parent=key.parent(), msid=message_set, cid=key, title=title, body=body)
+				msg = Message(parent=key, msid=message_set, title=title, body=body)
 				msg.put()
 				self.redirect("/administration/character?key=%s#global-messages" % key.urlsafe())
 		elif rel == "update_character_message":
-			About to implement this, and also shift messages to be under a character instead of using cid.
+			mode = self.request.get("mode", "")
+			if mode == "":
+				return self.display_error("Missing request parameter: mode")
+			elif mode not in ("update", "delete"):
+				return self.display_error("Invalid mode: must be update or delete.")
+			key = self.safe_get_key("Template/Character/Message")
+			if key == None: return
+			msg = key.get()
+			if msg == None:
+				return self.display_error("The target message does not exist.")
+			if mode == "delete":
+				key.delete()
+				self.redirect("/administration/character?key=%s#global-messages" % key.parent().urlsafe())
+			else:
+				succ, message_set, title, body = self.get_reqs("message-set", "title", "body")
+				if succ:
+					msg.msid = message_set
+					msg.title = title
+					msg.body = body
+					msg.put()
+					self.redirect("/administration/character?key=%s#global-messages" % key.parent().urlsafe())
+		elif rel == "set_character_name":
+			succ, name, key = self.get_reqs_key("name", "Template/Character")
+			if succ:
+				char = key.get()
+				char.name = name
+				char.put()
+				self.redirect("/administration/character?key=%s#properties" % key.urlsafe())
+		elif rel == "set_character_avatar":
+			succ, avatar, key = self.get_reqs_key("avatar", "Template/Character")
+			if succ:
+				char = key.get()
+				char.avatar = avatar
+				char.put()
+				self.redirect("/administration/character?key=%s#properties" % key.urlsafe())
+		elif rel == "duplicate_character":
+			succ, name, key = self.get_reqs_key("name", "Template/Character")
+			if succ:
+				old = key.get()
+				oldmsgs = Message.query(ancestor=key).fetch()
+				newkey = Character(name=name, avatar=old.avatar, parent=key.parent()).put()
+				for oldm in oldmsgs:
+					Message(msid=oldm.msid, title=oldm.title, body=oldm.body, parent=newkey).put()
+				self.redirect("/administration/character?key=%s#properties" % newkey.urlsafe())
+		elif rel == "delete_character":
+			succ, key = self.get_reqs_key("Template/Character")
+			if succ:
+				oldkeys = Message.query(ancestor=key).fetch(keys_only=True)
+				for mkey in oldkeys:
+					mkey.delete()
+				key.delete()
+				self.redirect("/administration/template?key=%s#characters" % key.parent().urlsafe())
+		elif rel == "delete_template":
+			succ, key = self.get_reqs_key("Template")
+			if succ:
+				if Session.query(Session.template == key).get(keys_only=True) != None:
+					return self.display_error("Sessions still exist that use this template! Convert them to use different Templates before you can delete this one.")
+				oldmsgs = Message.query(ancestor=key).fetch(keys_only=True)
+				for mkey in oldmsgs:
+					mkey.delete()
+				oldchars = Character.query(ancestor=key).fetch(keys_only=True)
+				for ckey in oldchars:
+					ckey.delete()
+				key.delete()
+				self.redirect("/administration")
 		else:
 			self.response.headers["Content-Type"] = "text/plain"
 			self.response.write("ADMIN: %s: %s" % (rel, self.request.params))
@@ -230,7 +318,7 @@ class AdminPage(webapp2.RequestHandler):
 			key = self.safe_get_key("Template")
 			if key != None:
 				template = key.get()
-				global_messages = Message.query(Message.cid == None, ancestor=key).fetch()
+				global_messages = Message.query(Message.charspec == False, ancestor=key).fetch()
 				characters = Character.query(ancestor=key).fetch()
 				if template == None:
 					self.display_error("The template that you are trying to view either does not exist or has been deleted.")
@@ -249,8 +337,35 @@ class AdminPage(webapp2.RequestHandler):
 				elif template == None:
 					self.display_error("The template of the character that you are trying to view either does not exist or has been deleted.")
 				else:
-					character_messages = Message.query(Message.cid == key, ancestor=key.parent()).fetch()
-					self.response.write(jt.render({"template": template, "character": character, "character_messages": character_messages}))
+					character_messages = Message.query(ancestor=key).fetch()
+					self.response.write(jt.render({"template": template, "character": character, "character_messages": character_messages, "avatars": avatars}))
+		elif rel == "prepare_delete_character":
+			self.response.headers["Content-Type"] = "text/html"
+			jt = JINJA_ENVIRONMENT.get_template('prepare_delete.html')
+
+			key = self.safe_get_key("Template/Character")
+			if key != None:
+				character = key.get()
+				template = key.parent().get()
+				if character == None:
+					self.display_error("The character that you are trying to delete either does not exist or has been deleted.")
+				elif template == None:
+					self.display_error("The template of the character that you are trying to delete either does not exist or has been deleted.")
+				else:
+					self.response.write(jt.render({"target": character, "warning": "You are attempting to delete a character and ALL ATTACHED MESSAGES!", "type": "character", "keep": "/administration/character?key=%s" % key.urlsafe(), "destroy": "/administration/delete_character"}))
+		elif rel == "prepare_delete_template":
+			self.response.headers["Content-Type"] = "text/html"
+			jt = JINJA_ENVIRONMENT.get_template('prepare_delete.html')
+
+			key = self.safe_get_key("Template")
+			if key != None:
+				if Session.query(Session.template == key).get(keys_only=True) != None:
+					return self.display_error("Sessions still exist that use this template! Convert them to use different Templates before you can delete this one.")
+				template = key.get()
+				if template == None:
+					self.display_error("The template that you are trying to delete either does not exist or has been deleted.")
+				else:
+					self.response.write(jt.render({"target": template, "warning": "You are attempting to delete a template and ALL ATTACHED CHARACTERS and ALL ATTACHED MESSAGES!", "type": "template", "keep": "/administration/template?key=%s" % key.urlsafe(), "destroy": "/administration/delete_template"}))
 		else:
 			self.response.headers["Content-Type"] = "text/plain"
 			self.response.write("ADMIN: %s" % rel)
