@@ -2,6 +2,9 @@ import webapp2, os, cgi, datetime, sys, time, logging, json, urllib, jinja2
 from google.appengine.api import users
 from google.appengine.ext import ndb
 
+with open("avatar-list.txt", "r") as f:
+	avatars = list(filter(None, (x.strip() for x in f.readlines())))
+
 class Template(ndb.Model):
 	name = ndb.StringProperty(required=True)
 	message_sets = ndb.StringProperty(repeated=True)
@@ -212,7 +215,7 @@ class AdminPage(webapp2.RequestHandler):
 				if template == None:
 					self.display_error("The template that you are trying to view either does not exist or has been deleted.")
 				else:
-					self.response.write(jt.render({"template": template, "global_messages": global_messages, "characters": characters}))
+					self.response.write(jt.render({"template": template, "global_messages": global_messages, "characters": characters, "avatars": avatars}))
 		else:
 			self.response.headers["Content-Type"] = "text/plain"
 			self.response.write("ADMIN: %s" % rel)

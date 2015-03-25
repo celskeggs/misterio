@@ -247,13 +247,40 @@
         <div class="panel-body">
           <div class="alert alert-info">Each <strong>character</strong> is predefined in the template, and in the actual session is connected to an actual player to be controlled. Each character has a list of <strong>predefined messages</strong> from each message set, which that character, and only that character, will receive when the message set is published.</div>
           <div class="form-horizontal">
-            {% if characters %}
-              {% for character in characters %}
-                {{ character }}
-              {% endfor %}
-            {% else %}
-              <div class="alert alert-warning">No characters currently exist.</div>
-            {% endif %}
+            <table class="table">
+              <thead>
+                <tr><th>#</th><th>Name</th><th>Avatar</th><th>Actions</th></tr>
+              </thead>
+              <tbody>
+                {% if not characters %}
+                  <tr><td colspan="4" style="text-align: center;"><div style="margin-bottom: 0px;" class="alert alert-warning">No characters defined.</div></td></tr>
+                {% endif %}
+                {% for character in characters %}
+                  <tr><td><span class="label label-default">{{ character.key.id() }} </span></td><td>{{ character.name }}</td><td>{{ character.avatar }}</td><td><a href="/administration/character?key={{ character.key.urlsafe() }}" class="btn btn-primary">View/Edit</a></td></tr>
+                {% endfor %}
+                <form method="post" action="/administration/new_character"><tr><td><span class="label label-default">NEW</span></td><td><input class="form-control" type="text" name="name" placeholder="enter name..."></td><td><select name="avatar" class="form-control"><option>unselected</option>{% for avatar in avatars %}<option>{{ avatar }}</option>{% endfor %}</select></td><td><button type="submit" class="btn btn-primary" style="width: 100%;">Create</button></td></tr></form>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Avatars</h3>
+        </div>
+        <div class="panel-body">
+          <div class="alert alert-info">Each <strong>avatar</strong> is predefined in the source code. Contact your developer to add or remove entries.</div>
+          <div class="media">
+            {% for avatar in avatars %}
+              <div class="media-left">
+                <a href="#">
+                  <img class="media-object" src="/img/{{ avatar }}">
+                </a>
+              </div>
+              <div class="media-body">
+                <h4 class="media-heading">{{ avatar }}</h4>
+              </div>
+            {% endfor %}
           </div>
         </div>
       </div>
