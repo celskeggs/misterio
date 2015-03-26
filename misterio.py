@@ -6,6 +6,12 @@ with open("avatar-list.txt", "r") as f:
 	avatars = list(filter(None, (x.strip() for x in f.readlines())))
 avatars.sort()
 
+JINJA_ENVIRONMENT = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
+    extensions=['jinja2.ext.autoescape'],
+    autoescape=True)
+JINJA_ENVIRONMENT.globals["len"] = len
+
 class Template(ndb.Model):
 	name = ndb.StringProperty(required=True)
 	message_sets = ndb.StringProperty(repeated=True)
@@ -54,21 +60,22 @@ class SelectPage(webapp2.RequestHandler):
 		if cid != None:
 			self.response.set_cookie("character", str(cid))
 			return self.redirect("/")
-		with open("static/select.html", "r") as f:
-			self.response.headers["Content-Type"] = "text/html"
-			data = []
-			while True:
-				datum = f.read(8192)
-				if not datum: break
-				data.append(datum)
-			prefix, ifany, rep, nochars, postfix = ''.join(data).split("<? CHARACTERS ?>")
-			chars = [(17, "arturo_d_b_a.png", "Sr. Loquacious Verylongname", "2015 Misterio Group 1")]
-			prefix = prefix.replace("<? USERNAME ?>", cgi.escape(users.get_current_user().nickname()))
-			if chars:
-				data = prefix + ifany + "\n".join(rep.replace("<? CID ?>", str(cid)).replace("<? AVATAR ?>", urllib.quote_plus(avatar)).replace("<? NAME ?>", cgi.escape(name)).replace("<? SESSION ?>", cgi.escape(session)) for cid, avatar, name, session in chars) + postfix
-			else:
-				data = prefix + nochars + postfix
-			self.response.write(data)
+		self.response.headers["Content-Type"] = "text/html"
+		jt = JINJA_ENVIRONMENT.get_template('select.html')
+
+		email = users.get_current_user().email()
+		sessions = Session.query(Session.assignments.player_email == email).fetch()
+		charids = set()
+		characters = []
+		for session in sessions:
+			for assignment in session.assignments:
+				if assignment.player_email == email:
+					characters.append((assignment.cid, session))
+					charids.add(assignment.cid)
+		charmap = dict((char.key, char) for char in ndb.get_multi(charids))
+		characters = [(charmap[key], session) for key, session in characters]
+
+		self.response.write(jt.render({"username": users.get_current_user().nickname(), "characters": characters}))
 class LogoffPage(webapp2.RequestHandler):
 	def get(self):
 		self.response.delete_cookie("character")
@@ -88,12 +95,6 @@ application = webapp2.WSGIApplication([
 	('/[a-z]*', MainPage),
 	('/dynamic/([a-z]+)', DynamicPage),
 ])
-
-JINJA_ENVIRONMENT = jinja2.Environment(
-    loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), "static_admin")),
-    extensions=['jinja2.ext.autoescape'],
-    autoescape=True)
-JINJA_ENVIRONMENT.globals["len"] = len
 
 def safe_unwrap_key(expected_path, unsafe):
 	unsafe_key = ndb.Key(urlsafe=unsafe)
@@ -136,7 +137,7 @@ class AdminPage(webapp2.RequestHandler):
 		return vals
 	def display_error(self, error):
 		self.response.headers["Content-Type"] = "text/html"
-		jt = JINJA_ENVIRONMENT.get_template('error.html')
+		jt = JINJA_ENVIRONMENT.get_template('static_admin/error.html')
 		self.response.write(jt.render({"error": error}))
 	def post(self, rel=""):
 		# Template-related calls
@@ -351,7 +352,7 @@ class AdminPage(webapp2.RequestHandler):
 	def get(self, rel=""):
 		if rel == "":
 			self.response.headers["Content-Type"] = "text/html"
-			jt = JINJA_ENVIRONMENT.get_template('root.html')
+			jt = JINJA_ENVIRONMENT.get_template('static_admin/root.html')
 
 			templates = Template.query().fetch()
 			sessions = Session.query().fetch()
@@ -359,7 +360,7 @@ class AdminPage(webapp2.RequestHandler):
 			self.response.write(jt.render({"templates": templates, "sessions": sessions}))
 		elif rel == "template":
 			self.response.headers["Content-Type"] = "text/html"
-			jt = JINJA_ENVIRONMENT.get_template('template.html')
+			jt = JINJA_ENVIRONMENT.get_template('static_admin/template.html')
 
 			key = self.safe_get_key("Template")
 			if key != None:
@@ -372,7 +373,7 @@ class AdminPage(webapp2.RequestHandler):
 					self.response.write(jt.render({"template": template, "global_messages": global_messages, "characters": characters, "avatars": avatars}))
 		elif rel == "session":
 			self.response.headers["Content-Type"] = "text/html"
-			jt = JINJA_ENVIRONMENT.get_template('session.html')
+			jt = JINJA_ENVIRONMENT.get_template('static_admin/session.html')
 
 			key = self.safe_get_key("Session")
 			if key != None:
@@ -390,7 +391,7 @@ class AdminPage(webapp2.RequestHandler):
 					self.response.write(jt.render({"session": session, "template": template, "characters": characters, "assignment_map": assignment_map, "template_names": template_names}))
 		elif rel == "posts":
 			self.response.headers["Content-Type"] = "text/html"
-			jt = JINJA_ENVIRONMENT.get_template('posts.html')
+			jt = JINJA_ENVIRONMENT.get_template('static_admin/posts.html')
 
 			key = self.safe_get_key("Session")
 			if key != None:
@@ -406,7 +407,7 @@ class AdminPage(webapp2.RequestHandler):
 				self.response.write(jt.render({"session": session, "posts": posts, "limit": limit, "avatars": avatarmap, "names": namemap}))
 		elif rel == "character":
 			self.response.headers["Content-Type"] = "text/html"
-			jt = JINJA_ENVIRONMENT.get_template('character.html')
+			jt = JINJA_ENVIRONMENT.get_template('static_admin/character.html')
 
 			key = self.safe_get_key("Template/Character")
 			if key != None:
@@ -421,7 +422,7 @@ class AdminPage(webapp2.RequestHandler):
 					self.response.write(jt.render({"template": template, "character": character, "character_messages": character_messages, "avatars": avatars}))
 		elif rel == "prepare_delete_character":
 			self.response.headers["Content-Type"] = "text/html"
-			jt = JINJA_ENVIRONMENT.get_template('prepare_delete.html')
+			jt = JINJA_ENVIRONMENT.get_template('static_admin/prepare_delete.html')
 
 			key = self.safe_get_key("Template/Character")
 			if key != None:
@@ -435,7 +436,7 @@ class AdminPage(webapp2.RequestHandler):
 					self.response.write(jt.render({"target": character, "warning": "You are attempting to delete a character and ALL ATTACHED MESSAGES!", "type": "character", "keep": "/administration/character?key=%s" % key.urlsafe(), "destroy": "/administration/delete_character"}))
 		elif rel == "prepare_delete_template":
 			self.response.headers["Content-Type"] = "text/html"
-			jt = JINJA_ENVIRONMENT.get_template('prepare_delete.html')
+			jt = JINJA_ENVIRONMENT.get_template('static_admin/prepare_delete.html')
 
 			key = self.safe_get_key("Template")
 			if key != None:

@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+{% autoescape true %}
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <title>Select Character</title>
-  <link rel="stylesheet" href="css/bootstrap.min.css">
-  <link rel="stylesheet" href="css/app.css">
-  <link rel="stylesheet" href="css/select.css">
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/select.css">
 </head>
 <body>
   <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
@@ -17,11 +18,11 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a id="mystery-title" class="navbar-brand" href="#">Select Character</a>
+        <a id="mystery-title" class="navbar-brand" href="/select">Select Character</a>
       </div>
       <div class="collapse navbar-collapse" ng-controller="Navbar">
         <ul class="nav navbar-nav navbar-right">
-          <li><div class="navbar-btn name-slot"><? USERNAME ?></div></li>
+          <li><div class="navbar-btn name-slot">{{ username }}</div></li>
           <li><button onclick="document.location='/logoff';" class="btn btn-default navbar-btn">Salir</button></li>
         </ul>
       </div>
@@ -37,30 +38,20 @@
         </noscript>
       </div>
 
-      <!-- note: these are fake directives. see misterio.py. -->
-      <? CHARACTERS ?>
-      <!-- if any characters -->
-      <div class="alert alert-info">Click on the character that you want to be.</div>
-      <? CHARACTERS ?>
-      <!-- repeated once per character -->
-      <div class="character-selection" cid="<? CID ?>">
-	    <img src="/img/<? AVATAR ?>" />
-		<div class="character-name"><? NAME ?></div>
-		<div><? SESSION ?></div>
-	  </div>
-      <? CHARACTERS ?>
-      <!-- if no characters -->
-      <div class="alert alert-danger">You have no characters! Please contact your session administrator.</div>
-      <? CHARACTERS ?>
-
-      <script>
-      var chrs = document.getElementsByClassName("character-selection");
-      for (var i=0; i<chrs.length; i++) {
-        chrs[i].onclick = function() {
-          window.location = "/select?id=" + this.getAttribute("cid");
-        }.bind(chrs[i]);
-      }
-      </script>
+      {% if characters %}
+        <div class="alert alert-info">Click on the character that you want to be.</div>
+        {% for character_pair in characters %}
+          <div class="character-selection">
+            <a href="/select?id={{ character_pair[0].key.urlsafe() }}">
+              <img class="user-avatar-big" src="/img/{{ character_pair[0].avatar }}" />
+              <div class="character-name">{{ character_pair[0].name }}</div>
+              <div>{{ character_pair[1].name }}</div>
+            </a>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="alert alert-danger">You have no characters! Please contact your session administrator.</div>
+      {% endif %}
     </div>
   </div>
 
@@ -69,3 +60,4 @@
   <script src="lib/bootstrap/bootstrap.js"></script>
 </body>
 </html>
+{% endautoescape %}

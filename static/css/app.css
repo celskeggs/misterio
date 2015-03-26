@@ -25,6 +25,13 @@ h6:first-child {
   background-color: #d2322d;
 }
 
+.user-avatar-big {
+  width: 200px;
+  height: 200px;
+  border: 2px solid #999;
+  border-radius: 10px;
+}
+
 .user-avatar {
   width: 100px;
   height: 100px;
