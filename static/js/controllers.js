@@ -149,7 +149,7 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
     function Compose($scope, $location, $routeParams, User, Storage) {
   $scope.dirty = 0;
   $scope.message = Storage.get('compose') || ($scope.dirty = 0, $scope.message = {
-    finish: false, to: []
+    expect: false, to: null
   });
   $scope.$watchCollection('message', _.throttle(function(value) {
     Storage.set('compose', value);
@@ -174,18 +174,20 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
   $scope.User = User;
 
   $scope.select = function(id) {
-    var index = $scope.message.to.indexOf(id);
-    if (index === -1) {
-      $scope.message.to.push(id);
+    if ($scope.message.to === id) {
+      $scope.message.to = null;
     } else {
-      $scope.message.to.splice(index, 1);
+      $scope.message.to = id;
+    }
+    if ($scope.message.to === null) {
+      $scope.message.expect = false;
     }
   };
   $scope.selected = function(id) {
-    return $scope.message.to.indexOf(id) !== -1;
+    return $scope.message.to === id;
   };
-  $scope.toggle_finish = function() {
-    $scope.message.finish = !$scope.message.finish;
+  $scope.toggle_expect = function() {
+    $scope.message.expect = !$scope.message.expect;
   };
 
   function gotPrev(prev) {
@@ -202,7 +204,7 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
 
   $scope.reset = function() {
     $scope.message = {
-      to: [], finish: false
+      to: null, expect: false
     };
     $scope.state.write = true;
     $scope.dirty = 0;
@@ -213,11 +215,14 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
 
   $scope.submit = function() {
     var msg = $scope.message;
+    if (msg.to === null) {
+      msg.expect = false;
+    }
     $scope.sending = true;
     User.messages.send({
       data: msg.data,
       to: msg.to,
-      finish: msg.finish,
+      expect: msg.expect,
       prev: parseInt(msg.prev)
     }).then(function(data) {
       $scope.$emit('flash', 'info', 'Enviado!', 'Tu mensaje ha enviado!', {dismissable: true});

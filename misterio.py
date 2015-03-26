@@ -120,12 +120,47 @@ class LogoffPage(webapp2.RequestHandler):
 			self.redirect("/select")
 		else:
 			self.redirect(users.create_logout_url('/'))
+def get_js_timestamp(x):
+	return int(1000 * time.mktime(x.timetuple()))
 class DynamicPage(VerifyingHandler):
 	def build_post_obj(self, post):
-		return {"id": post.key.id(), "data": post.msg, "from": post.cid.id(), "prev": post.response_to and post.response_to.id(), "date": int(post.date.timestamp() * 1000), "to": post.target and post.target.id()}
-	def get(self, dynamic_id):
-		# TODO: feed, inbox, profile, post
+		return {"id": post.key.id(), "data": post.msg, "from": post.cid.id(), "prev": post.response_to and post.response_to.id(), "date": get_js_timestamp(post.date), "to": post.target and post.target.id()}
+	def post(self, dynamic_id):
 		character, session = self.get_and_verify_character()
+		if character == None:
+			return
+		if dynamic_id == "new-post":
+			jo = json.loads(self.request.body)
+			if type(jo) != dict:
+				return self.abort(400)
+			to, prev, data, expect = jo.get("to", None), jo.get("prev", None), jo.get("data", None), jo.get("expect", None)
+			print "GOT JSON", jo, type(to), type(prev), type(data), type(expect)
+			if not ((type(to) == int or to == None) and (type(prev) == int or prev == None) and (type(data) == str or type(data) == unicode) and type(expect) == bool):
+				return self.abort(400)
+			if to != None:
+				to = Character.get_by_id(to)
+				if to == None: # character is gone
+					return self.abort(400)
+				to = to.key
+			elif expect:
+				return self.abort(400) # can't be both expecting a response and not having a target
+			if prev != None:
+				prev = Post.get_by_id(prev)
+				if prev == None: # post is gone
+					return self.abort(400)
+				prev = prev.key
+			post = Post(cid=character.key, target=to, msg=data, needs_reply=expect, response_to=prev)
+			pkey = post.put()
+			o = {"id": pkey.id(), "date": get_js_timestamp(post.date)}
+		else:
+			return self.abort(404)
+		self.response.headers["Content-Type"] = "application/json"
+		self.response.write(json.dumps(o))
+	def get(self, dynamic_id):
+		# TODO: inbox, profile
+		character, session = self.get_and_verify_character()
+		if character == None:
+			return
 		if dynamic_id == "users":
 			chars = Character.query(ancestor=session.template)
 			chard = []

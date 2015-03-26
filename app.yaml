@@ -28,6 +28,10 @@ handlers:
   static_dir: static/js/
   secure: always
   login: required
+- url: /fonts
+  static_dir: static/fonts/
+  secure: always
+  login: required
 - url: /lib
   static_dir: static/lib/
   secure: always
