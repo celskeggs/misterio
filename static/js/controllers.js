@@ -235,12 +235,7 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
 
   var id = $scope.message.prev = $routeParams.id || null;
   if (id) {
-    var stash = $scope.stash();
-    if (stash && stash.id === id) {
-      gotPrev(stash);
-    } else {
-      $scope.getPrev();
-    }
+    $scope.getPrev();
   }
 }]);
 

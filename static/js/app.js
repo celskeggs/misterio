@@ -86,16 +86,6 @@ app.run(function($rootScope, $location, User) {
       }
     });
   };
-
-  var stashed = null;
-  $rootScope.stash = function(value) {
-    if (value === undefined) {
-      value = stashed;
-      stashed = null;
-      return value;
-    }
-    stashed = value;
-  };
 });
 
 app.run(function($locale) {

@@ -99,13 +99,6 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q',
     },
     others: [],
     userLookup: {},
-    avatars: {
-      get: function() {
-        return use($http.get('get-avatars.php', {
-          params: {}
-        }));
-      }
-    },
     messages: {
       get: function(id) {
         return use($http.get('get-message.php', {
@@ -147,14 +140,6 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q',
             cid: cid,
             offset: offset,
             limit: limit
-          }
-        }));
-      },
-      update: function(id, message) {
-        // message: {title, data}
-        return use($http.put('update-message.php', message, {
-          params: {
-            id: id
           }
         }));
       },
