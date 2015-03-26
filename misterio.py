@@ -38,11 +38,41 @@ class Post(ndb.Model):
 	msg = ndb.TextProperty(required=True, indexed=False)
 	needs_reply = ndb.BooleanProperty(required=True)
 
-class MainPage(webapp2.RequestHandler):
-	def get(self):
-		character = self.request.cookies.get('character', None)
+class VerifyingHandler(webapp2.RequestHandler):
+	def get_and_verify_character(self, char=None): # returns (character, session)
+		email = users.get_current_user().email()
+		if char == None:
+			char = self.request.cookies.get("character", None)
+		if char == None:
+			self.redirect("/select")
+			return None, None
+		if ":" not in char:
+			self.response.delete_cookie("character")
+			self.redirect("/select")
+			return None, None
+		cid, sid = char.split(":", 2)
+		if not (cid.isdigit() and sid.isdigit()):
+			self.response.delete_cookie("character")
+			self.redirect("/select")
+			return None, None
+		cid, sid = int(cid), int(sid)
+		session = ndb.Key(Session, sid).get()
+		if session == None:
+			self.response.delete_cookie("character")
+			self.redirect("/select")
+			return None, None
+		character = Character.get_by_id(cid, parent=session.template)
 		if character == None:
-			return self.redirect("/select")
+			self.response.delete_cookie("character")
+			self.redirect("/select")
+			return None, None
+		return character, session
+
+class MainPage(VerifyingHandler):
+	def get(self):
+		character, session = self.get_and_verify_character()
+		if character == None:
+			return
 		with open("static/index.html", "r") as f:
 			self.response.headers["Content-Type"] = "text/html"
 			data = []
@@ -51,15 +81,18 @@ class MainPage(webapp2.RequestHandler):
 				if not datum: break
 				data.append(datum)
 			self.response.write("".join(data))
-class SelectPage(webapp2.RequestHandler):
+class SelectPage(VerifyingHandler):
 	def get(self):
 		character = self.request.cookies.get('character', None)
 		if character != None:
 			return self.redirect("/")
-		cid = self.request.get("id", None)
-		if cid != None:
-			self.response.set_cookie("character", str(cid))
-			return self.redirect("/")
+		csid = self.request.get("csid", None)
+		if csid != None:
+			if self.get_and_verify_character(csid) == None:
+				return
+			else:
+				self.response.set_cookie("character", csid)
+				return self.redirect("/")
 		self.response.headers["Content-Type"] = "text/html"
 		jt = JINJA_ENVIRONMENT.get_template('select.html')
 
@@ -80,11 +113,16 @@ class LogoffPage(webapp2.RequestHandler):
 	def get(self):
 		self.response.delete_cookie("character")
 		self.redirect(users.create_logout_url('/'))
-class DynamicPage(webapp2.RequestHandler):
+class DynamicPage(VerifyingHandler):
 	def get(self, dynamic_id):
+		character, session = self.get_and_verify_character()
 		self.response.headers["Content-Type"] = "application/json"
 		if dynamic_id == "users":
-			o = {"me": 17, "session": "2015 Misterio Group 1", "access": False, "users": [{"cid": 17, "avatar": "arturo_d_b_a.png", "name": "Sra. Remota Fletched"}]}
+			chars = Character.query(ancestor=session.template)
+			chard = []
+			for char in chars:
+				chard.append({"cid": char.key.id(), "avatar": char.avatar, "name": char.name})
+			o = {"me": character.key.id(), "session": session.name, "users": chard}
 		else:
 			return self.abort(404)
 		self.response.write(json.dumps(o))

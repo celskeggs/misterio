@@ -41,12 +41,14 @@
       {% if characters %}
         <div class="alert alert-info">Click on the character that you want to be.</div>
         {% for character_pair in characters %}
-          <div class="character-selection">
-            <a href="/select?id={{ character_pair[0].key.urlsafe() }}">
-              <img class="user-avatar-big" src="/img/{{ character_pair[0].avatar }}" />
-              <div class="character-name">{{ character_pair[0].name }}</div>
-              <div>{{ character_pair[1].name }}</div>
-            </a>
+          <div class="col-xs-3">
+            <div class="character-selection">
+              <a href="/select?csid={{ character_pair[0].key.id() }}:{{ character_pair[1].key.id() }}">
+                <img class="user-avatar-big" src="/img/{{ character_pair[0].avatar }}" />
+                <div class="character-name">{{ character_pair[0].name }}</div>
+                <div>{{ character_pair[1].name }}</div>
+              </a>
+            </div>
           </div>
         {% endfor %}
       {% else %}

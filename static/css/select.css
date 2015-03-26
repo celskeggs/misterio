@@ -1,10 +1,12 @@
 .character-selection {
   margin: auto;
   width: 224px;
+  height: 350px;
   background-color: #EEE;
   border-radius: 16px;
   padding: 10px;
   cursor: pointer !important;
+  margin-bottom: 40px;
 }
 .character-selection:hover {
   background-color: #DDD;
