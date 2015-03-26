@@ -120,6 +120,7 @@ class LogoffPage(webapp2.RequestHandler):
 			self.redirect(users.create_logout_url('/'))
 class DynamicPage(VerifyingHandler):
 	def get(self, dynamic_id):
+		# TODO: message, feed, inbox-count, inbox, profile, post
 		character, session = self.get_and_verify_character()
 		if dynamic_id == "users":
 			chars = Character.query(ancestor=session.template)

@@ -101,41 +101,33 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q',
     userLookup: {},
     messages: {
       get: function(id) {
-        return use($http.get('get-message.php', {
+        return use($http.get('/dynamic/message', {
           params: {
             id: id
           }
         }));
       },
       all: function(offset, limit) {
-        return use($http.get('messages.php', {
+        return use($http.get('/dynamic/feed', {
           params: {
             offset: offset,
-            limit: limit,
-            scope: 'all'
+            limit: limit
           }
         }));
       },
       inboxCount: function() {
-        return use($http.get('messages.php', {
-          params: {
-            offset: 0, // ignored on server
-            limit: 1, // ignored on server
-            scope: 'count'
-          }
-        }));
+        return use($http.get('/dynamic/inbox-count', {}));
       },
       inbox: function(offset, limit) {
-        return use($http.get('messages.php', {
+        return use($http.get('/dynamic/inbox', {
           params: {
             offset: offset,
-            limit: limit,
-            scope: 'inbox'
+            limit: limit
           }
         }));
       },
       profile: function(cid, offset, limit) {
-        return use($http.get('profile.php', {
+        return use($http.get('/dynamic/profile', {
           params: {
             cid: cid,
             offset: offset,
@@ -145,7 +137,7 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q',
       },
       send: function(message) {
         // message: {title, data, to: [], prev: ?, public}
-        return use($http.post('send-message.php', message, {}));
+        return use($http.post('/dynamic/post', message, {}));
       }
     }
   };
