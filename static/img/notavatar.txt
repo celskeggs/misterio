@@ -3,3 +3,5 @@ unlocked.png
 notavatar.txt
 inbox_0.png
 inbox_1.png
+broadcast.png
+admin_entry.png
