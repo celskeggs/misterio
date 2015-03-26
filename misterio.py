@@ -6,6 +6,8 @@ with open("avatar-list.txt", "r") as f:
 	avatars = list(filter(None, (x.strip() for x in f.readlines())))
 avatars.sort()
 
+# TODO: some way to get a report on what hasn't been responded to
+
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
     extensions=['jinja2.ext.autoescape'],
@@ -130,8 +132,8 @@ class DynamicPage(VerifyingHandler):
 application = webapp2.WSGIApplication([
 	('/logoff', LogoffPage),
 	('/select', SelectPage),
-	('/[a-z]*', MainPage),
 	('/dynamic/([a-z]+)', DynamicPage),
+	('/[a-z0-9/]*', MainPage),
 ])
 
 def safe_unwrap_key(expected_path, unsafe):

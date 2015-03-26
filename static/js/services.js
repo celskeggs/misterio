@@ -94,8 +94,7 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q',
   var User = {
     user: {
       id: null,
-      name: null,
-      access: null
+      name: null
     },
     inboxes: function() {
       return use($http.get('get-counts.php', {
@@ -187,40 +186,12 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q',
       send: function(message) {
         // message: {title, data, to: [], prev: ?, public}
         return use($http.post('send-message.php', message, {}));
-      },
-      remove: function(id) {
-        return use($http.delete('remove-message.php', {
-          params: {
-            id: id
-          }
-        }));
-      },
-      clear: function() {
-        return use($http.delete('clear-messages.php', {
-          params: {}
-        }));
       }
     },
     users: {
-      // TODO: enforce access?
-      add: function(user) {
-        // user: {name, email, access, avatar}
-        return use($http.post('add-user.php', user, {}), function(data) {
-          user.cid = data.cid;
-          User.others.push(user);
-          User.userLookup[user.cid] = user;
-        });
-      },
-      move: function(cid, instance) {
-        return use($http.post('move-user.php', {instance: instance}, {
-          params: {
-            cid: cid
-          }
-        }));
-      },
       all: function() {
         return use($http.get('/dynamic/users', {}), function(data) {
-          var others = data.users, cid = data.cid, access = data.access;
+          var others = data.users, cid = data.cid
           User.others.length = 0;
           User.others.push.apply(User.others, others);
           User.userLookup = {};
@@ -229,53 +200,8 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q',
           }
           User.user.id = cid;
           User.user.name = User.userLookup[cid].name;
-          User.user.access = access;
         });
       },
-      // TODO: enforce access?
-      reset: function(cid) {
-        return use($http.post('reset-user.php', {}, {
-          params: {
-            cid: cid
-          }
-        }));
-      },
-      update: function(cid, user) {
-        // user: {name, email, access, avatar}
-        var d = $q.defer();
-        $http.put('update-user.php', user, {
-          params: {
-            cid: cid
-          }
-        }).success(function(data, status, res) {
-          // TODO: update User.others
-          var cid = data.cid, user = User.userLookup[cid];
-          for (var key in data) {
-            user[key] = data[key];
-          }
-          putData(data, d);
-        }).error(error(d));
-        return d.promise;
-      },
-      remove: function(cid) {
-        for (var i = 0; i < User.others.length; i++) {
-          if (User.others[i].cid === cid) {
-            break;
-          }
-        }
-        User.others.splice(i, 1);
-        return use($http.delete('remove-user.php', {
-          params: {
-            cid: cid
-          }
-        })).then(function(data) {
-          delete User.userLookup[cid];
-          return data;
-        }, function(err) {
-          User.others.splice(i, 0, User.userLookup[cid]);
-          throw err;
-        });
-      }
     }
   };
   User.fetch();

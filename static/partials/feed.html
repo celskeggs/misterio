@@ -24,15 +24,12 @@
       <div class="panel-heading clearfix">
         <h4 class="panel-title pull-left">{{msg.title}} &nbsp; <small>{{user(msg.from).name}} &rarr; <span ng-if="!(msg.to &amp;&amp; msg.to.length)">{{msg.public ? "Todos" : "Nadie"}}</span> <span ng-if="msg.to &amp;&amp; msg.to.length"><span ng-repeat="target in msg.to">{{user(target).name}} &nbsp;</span></span><span ng-if="!msg.public">(Privado)</span> <span ng-if="msg.finish">(Finalizado)</span></small></h4>
         <div class="pull-right">
-          <h4><span class="label label-default" ng-if="access()">{{msg.id}}</span> <span class="label label-default">{{msg.date | date:'yyyy-MM-dd HH:mm:ss'}}</span></h4>
+          <h4><span class="label label-default">{{msg.date | date:'yyyy-MM-dd HH:mm:ss'}}</span></h4>
         </div>
       </div>
       <div class="panel-body clearfix">
-        <div class="pull-right" ng-class="access() ? 'btn-group' : ''">
+        <div class="pull-right">
           <a style="margin-left: 5px;" href="./compose/{{msg.id}}" class="btn" ng-class="msg.finish ? 'btn-warning' : 'btn-primary'">Responder</a>
-          <button class="btn btn-primary" ng-click="show(msg.id)" ng-if="access()">{{isshowing(msg.id) ? "Menos" : "M&aacute;s"}}</button>
-          <button class="btn btn-danger" ng-click="delete(msg.id)" ng-if="access() && isshowing(msg.id)">Borrar</button>
-          <button class="btn btn-warning pull-right" ng-click="finalize(msg.id)" ng-if="access() && isshowing(msg.id)">Finalize</button>
         </div>
         <div class="pull-left">
           <div markdown-preview="msg.data"></div>

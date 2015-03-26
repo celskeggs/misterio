@@ -48,25 +48,6 @@ app.controller('Feed', ['$scope', '$location', 'User', '$rootScope',
     return $scope.showing == id;
   };
 
-  $scope.finalize = function(id) {
-    if (!User.user.access) return;
-    User.messages.toggleFinalize(id).then(function() {
-      $scope.get();
-    });
-  };
-
-  $scope.delete = function(id) {
-    if (!User.user.access) return;
-    if (confirm('Are you sure you wish to delete this message?')) {
-      User.messages.remove(id);
-      $scope.get();
-    }
-  };
-
-  $scope.access = function() {
-    return User.user.access;
-  };
-
   $scope.canNext = function() {
     return $scope.offset + $scope.limit < $scope.total;
   };
@@ -128,10 +109,6 @@ app.controller('Inbox', ['$scope', '$location', 'User',
     return $scope.offset + $scope.limit < $scope.total;
   };
 
-  $scope.access = function() {
-    return User.user.access;
-  };
-
   $scope.showing = -1;
   $scope.show = function(id) {
     if ($scope.showing == id) {
@@ -142,21 +119,6 @@ app.controller('Inbox', ['$scope', '$location', 'User',
   };
   $scope.isshowing = function(id) {
     return $scope.showing == id;
-  };
-
-  $scope.finalize = function(id) {
-    if (!User.user.access) return;
-    User.messages.toggleFinalize(id).then(function() {
-      $scope.get();
-    });
-  };
-
-  $scope.delete = function(id) {
-    if (!User.user.access) return;
-    if (confirm('Are you sure you wish to delete this message?')) {
-      User.messages.remove(id);
-      $scope.get();
-    }
   };
 
   $scope.canPrev = function() {
@@ -329,117 +291,12 @@ app.controller('Broadcast', ['$scope', '$location', '$routeParams', 'User',
 
 app.controller('Users', ['$scope', '$location', 'User',
     function Users($scope, $location, User) {
-  $scope.state = {editing: -1, adding: false};
-  $scope.editUser = null;
-
   $scope.showCredits = false;
 
   $scope.User = User;
-  $scope.destroying = 0;
 
   $scope.toggleCredits = function() {
     $scope.showCredits = !$scope.showCredits;
-  };
-
-  $scope.destroy = function(n) {
-    if (n === "real") {
-      if (confirm("Erase all messages?")) {
-        User.messages.clear().then(function () {
-          $scope.$emit('flash', 'danger', 'Destriudo!', 'The database has been cleared!', {dismissable: true});
-        });
-      }
-    } else {
-      $scope.destroying = n;
-    }
-  };
-
-  // be has been removed.
-
-  // avatars has been removed.
-
-  // move has been removed.
-
-  $scope.access = function() {
-    return User.user.access;
-  };
-
-  $scope.disabled = function(index, del) {
-    var s = $scope.state, u = User.others[index], m = User.user.id;
-    return s.adding || ~s.editing || (del && u.cid === m);
-  };
-
-  $scope.selectAvatar = function(avatar) {
-    $scope.editUser.avatar = avatar;
-    if (!$scope.editUser.name) {
-      $scope.editUser.name = avatar.replace(/_/g, " ").split(".")[0].split(" ").map(function(f){return f.substr(0, 1).toUpperCase() + f.substr(1).toLowerCase()}).join(" ");
-    }
-  };
-
-  $scope.add = function() {
-    $scope.state.adding = true;
-    $scope.editUser = {'access': false, 'email': null};
-  };
-
-  $scope.edit = function(index) {
-    if (!User.user.access) return;
-    var other = User.others[index];
-    $scope.state.editing = index;
-    $scope.editUser = {};
-    for (var key in other) {
-      if (key == "email" && other[key] == null) {
-        $scope.editUser[key] = "";
-      } else {
-        $scope.editUser[key] = other[key];
-      }
-    }
-  };
-
-  $scope.reset = function(index) {
-    if (!User.user.access) return;
-    var user = User.others[index];
-    if (confirm('Are you sure you wish to resend the email for ' + user.name + '?')) {
-      User.users.reset(user.cid);
-    }
-  };
-
-  $scope.delete = function(index) {
-    if (!User.user.access) return;
-    var user = User.others[index];
-    if (confirm('Are you sure you wish to delete ' + user.name + '?')) {
-      User.users.remove(user.cid);
-    }
-  };
-
-  $scope.save = function() {
-    if (!User.user.access) return;
-    if ($scope.state.adding) {
-      User.users.add($scope.editUser).then($scope.cancel);
-    } else {
-      User.users.update($scope.editUser.cid, $scope.editUser).then($scope.commit);
-    }
-  };
-
-  $scope.commit = function() {
-    var other = User.others[$scope.state.editing];
-    for (var key in $scope.editUser) {
-      other[key] = $scope.editUser[key];
-    }
-    $scope.cancel();
-  };
-
-  $scope.printout = null;
-
-  $scope.inboxPrintout = function() {
-    User.inboxes().then(function(data) {
-      $scope.printout = data;
-    });
-  };
-
-  $scope.cancel = function() {
-    if (!User.user.access) return;
-    $scope.state.adding = false;
-    $scope.state.editing = -1;
-    $scope.editUser = null;
   };
 }]);
 
@@ -495,21 +352,6 @@ app.controller('Profile', ['$scope', '$location', '$routeParams', 'User',
     return $scope.showing == id;
   };
 
-  $scope.finalize = function(id) {
-    if (!User.user.access) return;
-    User.messages.toggleFinalize(id).then(function() {
-      $scope.get();
-    });
-  };
-
-  $scope.delete = function(id) {
-    if (!User.user.access) return;
-    if (confirm('Are you sure you wish to delete this message?')) {
-      User.messages.remove(id);
-      $scope.get();
-    }
-  };
-
   $scope.canNext = function() {
     return $scope.offset + $scope.limit < $scope.total;
   };
@@ -539,9 +381,6 @@ app.controller('Profile', ['$scope', '$location', '$routeParams', 'User',
 
 app.controller('Navbar', ['$scope', '$location', 'User', function Navbar($scope, $location, User) {
   $scope.User = User;
-  $scope.access = function() {
-    return User.user.access;
-  };
   $scope.selectInstance = function(inst) {
     if (confirm("Are you sure that you want to switch to instance " + inst + "?")) {
       User.users.move(User.user.id, inst).then(function (data) {

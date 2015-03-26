@@ -1,97 +1,44 @@
-<h1>Personajes<button type="button" class="btn btn-success pull-right" ng-click="add()" ng-if="access()" ng-disabled="state.editing !== -1">+ Nueva Persona</button></h1>
+<h1>Personajes</h1>
 
 <p>Hay {{User.others.length}} personaje{{User.others.length == 1 ? "" : "s"}}.</p>
 
-<form name="EditForm" ng-submit="save()">
-  <table class="table table-striped table-hover">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Nombre</th>
-        <th ng-if="access()">Email</th>
-        <th>Foto</th>
-        <th ng-if="access()">Acceso</th>
-        <th ng-if="access()" colspan="2">Acci&oacute;nes</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr ng-repeat="user in User.others">
-        <td><a ng-href="./users/{{user.cid}}" class="label label-default">{{user.cid}}</a></td>
-        <td ng-hide="state.editing === $index">{{user.name}}</td>
-        <td ng-hide="state.editing === $index" ng-if="access()">{{user.email}}</td>
-        <td ng-hide="state.editing === $index">
-          <img class="user-avatar-small" src="./img/{{user.avatar}}">
-          {{user.avatar}}
-        </td>
-        <td ng-hide="state.editing === $index" ng-if="access()">{{ternary(user.access, 'Administrador', 'Usuario')}}</td>
-        <td ng-if="access() &amp;&amp; state.editing === $index">
-          <input type="text" class="form-control" ng-model="editUser.name" required>
-        </td>
-        <td ng-if="access() &amp;&amp; state.editing === $index">{{User.user.instance}}</td>
-        <td ng-if="access() &amp;&amp; state.editing === $index">
-          <input type="email" class="form-control" ng-model="editUser.email">
-        </td>
-        <td ng-if="access() &amp;&amp; state.editing === $index">
-          <input type="text" class="form-control" ng-model="editUser.avatar" required>
-        </td>
-        <td ng-if="access() &amp;&amp; state.editing === $index">
-          <input type="checkbox" ng-model="editUser.access">
-        </td>
-        <td ng-if="access()" class="action-cell">
-          <button ng-disabled="disabled($index)" ng-hide="state.editing === $index" type="button" class="btn btn-success" ng-click="edit($index)">Editar</button><button style="margin-left: 8px;" ng-disabled="disabled($index, true)" ng-hide="state.editing === $index" type="button" class="btn btn-danger" ng-click="delete($index)">Borrar</button>
-          <button ng-if="state.editing === $index" type="submit" class="btn btn-primary" ng-disabled="EditForm.$invalid">Save</button>
-          <button ng-if="state.editing === $index" type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
-          <button ng-hide="state.editing === $index" type="button" class="btn btn-danger" ng-click="be(user.cid)">Ser</button>
-        </td>
-      </tr>
-      <tr ng-if="access() &amp;&amp; state.adding">
-        <td></td>
-        <td><input type="text" focus-me="true" class="form-control" ng-model="editUser.name" required></td>
-        <td><input type="email" class="form-control" ng-model="editUser.email"></td>
-        <td><input type="text" class="form-control" ng-model="editUser.avatar" required></td>
-        <td><input type="checkbox" ng-model="editUser.access"></td>
-        <td class="action-cell">
-          <button type="submit" class="btn btn-primary" ng-disabled="EditForm.$invalid">Save</button>
-          <button type="button" class="btn btn-default" ng-click="cancel()">Cancel</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
+<table class="table table-striped table-hover">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Nombre</th>
+      <th>Foto</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="user in User.others">
+      <td><a ng-href="./users/{{user.cid}}" class="label label-default">{{user.cid}}</a></td>
+      <td>{{user.name}}</td>
+      <td>
+        <img class="user-avatar-small" src="./img/{{user.avatar}}">
+        {{user.avatar}}
+      </td>
+    </tr>
+  </tbody>
+</table>
 
-  <ul class="list-inline">
-    <li class="avatar-display-elem" ng-repeat="avatar in avatars">
-      <img class="user-avatar" src="./img/{{avatar}}">
-      {{avatar}}
-      <button type="button" ng-click="selectAvatar(avatar)" ng-if="access() && (state.editing &gt;= 0 || state.adding)" class="btn btn-default">Select</button>
-    </li>
-  </ul>
+<ul class="list-inline">
+  <li class="avatar-display-elem" ng-repeat="avatar in avatars">
+    <img class="user-avatar" src="./img/{{avatar}}">
+    {{avatar}}
+  </li>
+</ul>
 
-  <div ng-if="showCredits">
-    This system was developed by Colby Skeggs, with some programming &amp; interface help from Eli Skeggs.<br>
-    The idea for an upgraded system is thanks to Casey Currey-Wilson.<br>
-    Thanks to Roberto Villa for teaching the Spanish III class and pushing for this system to be built.<br>
-    We also appreciate the miscellaneous testers who helped make sure the system worked before it crashed head-first into production.<br>
-    The avatars were derived from <a href="http://kubbypan.deviantart.com/art/Kubby-s-sprite-base-401451067">Kubbypan's talksprite bases</a> by Colby Skeggs.<br>
-    <br>
-    The original version was created by Terri Nelson and Walter Oliver from California State University, San Bernardino, in 1997.<br>
-  </div>
+<div ng-if="showCredits">
+  This system was developed by Colby Skeggs, with some programming &amp; interface help from Eli Skeggs.<br>
+  The idea for an upgraded system is thanks to Casey Currey-Wilson.<br>
+  Thanks to Roberto Villa for teaching the Spanish III class and pushing for this system to be built.<br>
+  We also appreciate the miscellaneous testers who helped make sure the system worked before it crashed head-first into production.<br>
+  The avatars were derived from <a href="http://kubbypan.deviantart.com/art/Kubby-s-sprite-base-401451067">Kubbypan's talksprite bases</a> by Colby Skeggs.<br>
+  <br>
+  The original version was created by Terri Nelson and Walter Oliver from California State University, San Bernardino, in 1997.<br>
+</div>
 
-  <button type="button" class="btn btn-primary" ng-click="toggleCredits()">Credits</button>
+<button type="button" class="btn btn-primary" ng-click="toggleCredits()">Credits</button>
 
-  <button type="button" class="btn btn-danger" ng-if="access()" ng-click="destroy(1)">Destruir todos mensajes</button>
-  <button type="button" class="btn btn-danger" ng-if="destroying &gt;= 1" ng-click="destroy(2)">&#173;Este va a borrar todos los mensajes!</button>
-  <button type="button" class="btn btn-danger" ng-if="destroying &gt;= 2" ng-click="destroy(3)">All messages will be eliminated!</button>
-  <button type="button" class="btn btn-danger" ng-if="destroying &gt;= 3" ng-click="destroy('real')">You might be making a mistake! Are you sure?</button>
-
-  <button type="button" class="btn btn-success" ng-if="access()" ng-click="inboxPrintout()">Show User Inboxes</button>
-  <table ng-if="printout">
-    <thead>
-      <tr><td>Name</td><td>Instance</td><td>Email</td><td>Inbox</td></tr>
-    </thead>
-    <tbody>
-      <tr ng-repeat="elem in printout"><td>{{elem.cid}}</td><td>{{elem.inst}}</td><td>{{elem.email}}</td><td>{{elem.count}}</td></tr>
-    </tbody>
-  </table>
-
-  <div style="margin-bottom: 100px;"> </div>
-</form>
+<div style="margin-bottom: 100px;"> </div>
