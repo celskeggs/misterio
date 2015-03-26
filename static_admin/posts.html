@@ -52,14 +52,14 @@
           <div class="alert alert-info">A <strong>post</strong> is a message in a specific <strong>session</strong>, made by a specific <strong>character</strong> in that session, that goes to all characters in the session. A post can have a <strong>target character</strong>, and if so, can optionally <strong>require a reply</strong> from that character.</div>
           <table class="table">
             <thead>
-              <tr><th>#</th><th>Sender</th><th>Target</th><th>Message Extract</th><th>Awaiting Response</th><th>Actions</th></tr>
+              <tr><th>#<br>Date</th><th>Sender</th><th>Target</th><th>Message Extract</th><th>Response Status</th><th>Actions</th></tr>
             </thead>
             <tbody>
               {% if not posts %}
                 <tr><td colspan="6" style="text-align: center;"><div style="margin-bottom: 0px;" class="alert alert-warning">No posts found. Go to the main front-end interface to make posts.</div></td></tr>
               {% endif %}
               {% for post in posts %}
-                <tr><td><span class="label label-default">{{ post.key.id() }} </span></td><td><img src="/img/{{ avatars[post.cid] }}" class="user-avatar-small">{{ names[post.cid] }}</td><td>{% if post.target == None %}General Post{% else %}<img src="/img/{{ avatars[post.target] }}" class="user-avatar-small">{{ names[post.target] }}{% endif %}</td><td>{{ post.msg if len(post.msg) < limit else post.msg[:limit] + "..." }}</td><td>{% if post.needs_reply %}<span class="glyphicon glyphicon-time"></span>{% else %}<span class="glyphicon glyphicon-ok"></span>{% endif %}</td><td><a href="/administration/post?key={{ post.key.urlsafe() }}" class="btn btn-info">View Post</a></td></tr></form>
+                <tr><td><span class="label label-default">{{ post.key.id() }} </span><br>{{ post.date }}</td><td><img src="/img/{{ avatars[post.cid] }}" class="user-avatar-small">{{ names[post.cid] }}</td><td>{% if post.target == None %}General Post{% else %}<img src="/img/{{ avatars[post.target] }}" class="user-avatar-small">{{ names[post.target] }}{% endif %}</td><td>{{ post.msg if len(post.msg) < limit else post.msg[:limit] + "..." }}</td><td>{% if post.needs_reply %}<span class="glyphicon glyphicon-time"></span> Reply needed.{% elif post.needs_reply == None %}<span class="glyphicon glyphicon-certificate"></span> Reply not needed.{% else %}<span class="glyphicon glyphicon-ok"></span> Reply received.{% endif %}</td><td><button type="button" data-toggle="modal" data-target="#post-box" class="btn btn-info" data-ptitle="Post View: {{ names[post.cid] }}: {{ post.key.id() }}" data-pbody="{{ post.msg }}">View Post</button></td></tr></form>
               {% endfor %}
               {% if len(posts) >= limit %}
                 <tr><td colspan="6" style="text-align: center;"><div style="margin-bottom: 0px;" class="alert alert-danger">Current post view is truncated. This is a known shortcoming - please contact your developer.</div></td></tr>
@@ -68,12 +68,41 @@
           </table>
         </div>
       </div>
+
+      <div class="modal fade" id="post-box" tabindex="-1" role="dialog" aria-labelledby="post-label" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title" id="post-label">PLACEHOLDER</h4>
+            </div>
+            <div class="modal-body" id="post-body">
+              PLACEHOLDER
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
   <script src="/lib/jquery/jquery.js"></script>
   <script src="/lib/underscore/underscore.js"></script>
+  <script src="/lib/marked/marked.js"></script>
   <script src="/lib/bootstrap/bootstrap.js"></script>
+
+  <script>
+    $('#post-box').on('show.bs.modal', function (event) {
+      var button = $(event.relatedTarget);
+      var title = button.data('ptitle'), body = button.data('pbody');
+      var modal = $(this);
+      modal.find('#post-label').text(title);
+      modal.find('#post-body').html(marked(body));
+    })
+  </script>
 </body>
 </html>
 {% endautoescape %}

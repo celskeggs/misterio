@@ -39,7 +39,7 @@ class Post(ndb.Model):
 	target = ndb.KeyProperty(required=False, kind=Character)
 	date = ndb.DateTimeProperty(required=True, auto_now_add=True)
 	msg = ndb.TextProperty(required=True, indexed=False)
-	needs_reply = ndb.BooleanProperty(required=True)
+	needs_reply = ndb.BooleanProperty(required=False)
 	response_to = ndb.KeyProperty(required=False, kind="Post")
 
 class VerifyingHandler(webapp2.RequestHandler):
@@ -124,7 +124,7 @@ def get_js_timestamp(x):
 	return int(1000 * time.mktime(x.timetuple()))
 class DynamicPage(VerifyingHandler):
 	def build_post_obj(self, post):
-		return {"id": post.key.id(), "data": post.msg, "from": post.cid.id(), "prev": post.response_to and post.response_to.id(), "date": get_js_timestamp(post.date), "to": post.target and post.target.id()}
+		return {"id": post.key.id(), "data": post.msg, "from": post.cid.id(), "prev": post.response_to and post.response_to.id(), "date": get_js_timestamp(post.date), "to": post.target and post.target.id(), "expect": post.needs_reply}
 	def post(self, dynamic_id):
 		character, session = self.get_and_verify_character()
 		if character == None:
@@ -138,18 +138,21 @@ class DynamicPage(VerifyingHandler):
 			if not ((type(to) == int or to == None) and (type(prev) == int or prev == None) and (type(data) == str or type(data) == unicode) and type(expect) == bool):
 				return self.abort(400)
 			if to != None:
-				to = Character.get_by_id(to)
+				to = Character.get_by_id(to, parent=session.template)
 				if to == None: # character is gone
 					return self.abort(400)
 				to = to.key
 			elif expect:
 				return self.abort(400) # can't be both expecting a response and not having a target
 			if prev != None:
-				prev = Post.get_by_id(prev)
+				prev = Post.get_by_id(prev, parent=session.key)
 				if prev == None: # post is gone
 					return self.abort(400)
+				if prev.needs_reply and prev.target == character.key:
+					prev.needs_reply = False
+					prev.put()
 				prev = prev.key
-			post = Post(cid=character.key, target=to, msg=data, needs_reply=expect, response_to=prev)
+			post = Post(cid=character.key, target=to, msg=data, needs_reply=expect or None, response_to=prev, parent=session.key)
 			pkey = post.put()
 			o = {"id": pkey.id(), "date": get_js_timestamp(post.date)}
 		else:
@@ -171,7 +174,7 @@ class DynamicPage(VerifyingHandler):
 			mid = self.request.get("id", None)
 			if mid == None or not mid.isdigit():
 				return self.abort(400)
-			post = Post.get_by_id(mid)
+			post = Post.get_by_id(int(mid), parent=session.key)
 			if post == None:
 				return self.abort(404) # gone
 			o = self.build_post_obj(post)
@@ -190,7 +193,7 @@ class DynamicPage(VerifyingHandler):
 			direction = self.request.get("direction", "forward")
 			reverse = direction == "reverse"
 
-			q = Post.query().order((-Post.date) if reverse else (Post.date))
+			q = Post.query(ancestor=session.key).order((Post.date) if reverse else (-Post.date))
 			posts, cursor, more = q.fetch_page(limit, start_cursor=(begin.reversed() if reverse else begin))
 			o = {"posts": [self.build_post_obj(post) for post in posts], "next": (cursor.reversed().urlsafe() if reverse else cursor.urlsafe()) if more else None}
 		else:
@@ -508,7 +511,7 @@ class AdminPage(webapp2.RequestHandler):
 				if session == None:
 					return self.display_error("The session that you are trying to view either does not exist or has been deleted.")
 				limit = 10
-				posts = Post.query().fetch(limit)
+				posts = Post.query(ancestor=session.key).order(Post.date).fetch(limit)
 				charids = list(set(post.cid for post in posts).union(set(post.target for post in posts if post.target != None)))
 				chars = ndb.get_multi(charids)
 				avatarmap = dict((char.key, char.avatar) for char in chars)

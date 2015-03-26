@@ -192,7 +192,7 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
 
   function gotPrev(prev) {
     $scope.prev = prev;
-    $scope.message.to = [prev.from];
+    $scope.message.to = prev.from;
   }
 
   $scope.getPrev = function() {
