@@ -136,7 +136,7 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q',
         }));
       },
       send: function(message) {
-        // message: {title, data, to: [], prev: ?, public}
+        // message: {data, to: [], prev: ?}
         return use($http.post('/dynamic/post', message, {}));
       }
     }

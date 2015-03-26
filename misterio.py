@@ -37,8 +37,10 @@ class Session(ndb.Model):
 class Post(ndb.Model):
 	cid = ndb.KeyProperty(required=True, kind=Character)
 	target = ndb.KeyProperty(required=False, kind=Character)
+	date = ndb.DateTimeProperty(required=True, auto_now_add=True)
 	msg = ndb.TextProperty(required=True, indexed=False)
 	needs_reply = ndb.BooleanProperty(required=True)
+	response_to = ndb.KeyProperty(required=False, kind="Post")
 
 class VerifyingHandler(webapp2.RequestHandler):
 	def get_and_verify_character(self, char=None): # returns (character, session)
@@ -119,8 +121,10 @@ class LogoffPage(webapp2.RequestHandler):
 		else:
 			self.redirect(users.create_logout_url('/'))
 class DynamicPage(VerifyingHandler):
+	def build_post_obj(self, post):
+		return {"id": post.key.id(), "data": post.msg, "from": post.cid.id(), "prev": post.response_to and post.response_to.id(), "date": int(post.date.timestamp() * 1000), "to": post.target and post.target.id()}
 	def get(self, dynamic_id):
-		# TODO: message, feed, inbox-count, inbox, profile, post
+		# TODO: message, feed, inbox, profile, post
 		character, session = self.get_and_verify_character()
 		if dynamic_id == "users":
 			chars = Character.query(ancestor=session.template)
@@ -128,6 +132,16 @@ class DynamicPage(VerifyingHandler):
 			for char in chars:
 				chard.append({"cid": char.key.id(), "avatar": char.avatar, "name": char.name, "session": session.name})
 			o = {"me": character.key.id(), "session": session.name, "users": chard}
+		elif dynamic_id == "message":
+			mid = self.request.get("id", None)
+			if mid == None or not mid.isdigit():
+				return self.abort(400)
+			post = Post.get_by_id(mid)
+			if post == None:
+				return self.abort(404) # gone
+			o = self.build_post_obj(post)
+		elif dynamic_id == "inbox-count":
+			o = {"inbox": 0, "msgs": 0} # TODO: do this properly
 		else:
 			return self.abort(404)
 		self.response.headers["Content-Type"] = "application/json"
@@ -136,7 +150,7 @@ class DynamicPage(VerifyingHandler):
 application = webapp2.WSGIApplication([
 	('/logoff', LogoffPage),
 	('/select', SelectPage),
-	('/dynamic/([a-z]+)', DynamicPage),
+	('/dynamic/([-a-z]+)', DynamicPage),
 	('/[a-z0-9/]*', MainPage),
 ])
 

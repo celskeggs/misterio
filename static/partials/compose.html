@@ -4,7 +4,7 @@
       <img class="media-object user-avatar" ng-src="{{'./img/' + user(prev.from).avatar}}" alt="{{user(prev.from).name}}">
     </a>
     <div class="media-body">
-      <h4>{{prev.title}} &nbsp; <small>{{user(prev.from).name}}</small> <small ng-if="prev.to &amp;&amp; prev.to.length">&rarr; <span ng-repeat="target in prev.to">{{user(target).name}}</span></small> <span class="label label-default pull-right">{{prev.date | date:'short'}}</span></h4>
+      <h4><small>{{user(prev.from).name}}</small> <small ng-if="prev.to &amp;&amp; prev.to.length">&rarr; <span ng-repeat="target in prev.to">{{user(target).name}}</span></small> <span class="label label-default pull-right">{{prev.date | date:'short'}}</span></h4>
       <p ng-repeat="block in blocks(prev.data)">{{block}}</p>
     </div>
   </div>
@@ -27,13 +27,6 @@
             </div>
           </div>
         </li><li class="avatar-cell ng-scope">
-          <div class="avatar-select-elem avatar-locked-elem" nope="avatar-locked-elem" ng-class="{'avatar-selected-elem': !message.public}" ng-click="toggle_locked()">
-            <img src="./img/{{message.public ? 'unlocked.png' : 'locked.png'}}" />
-            <div>
-              <div>{{message.public ? 'P&uacute;blico' : 'Privado'}}</div>
-            </div>
-          </div>
-        </li><li class="avatar-cell ng-scope">
           <div class="avatar-select-elem avatar-inbox-elem" ng-class="{'avatar-selected-elem': message.finish}" ng-click="toggle_finish()">
             <img src="./img/{{message.finish ? 'inbox_0.png' : 'inbox_1.png'}}" />
             <div>
@@ -43,13 +36,6 @@
         </li>
       </ul>
       <span ng-if="!message.finish">(This message will require a reply from the recipient.)</span>
-      <span ng-if="!message.public">(This message will be private. Usually this is bad!)</span>
-    </div>
-  </div>
-  <div class="form-group">
-    <label class="col-sm-2 control-label" for="input-title">Asunto</label>
-    <div class="col-sm-10">
-      <input type="text" id="input-title" ng-model="message.title" class="form-control" required>
     </div>
   </div>
   <div class="row">

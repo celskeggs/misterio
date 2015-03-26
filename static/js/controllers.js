@@ -149,7 +149,7 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
     function Compose($scope, $location, $routeParams, User, Storage) {
   $scope.dirty = 0;
   $scope.message = Storage.get('compose') || ($scope.dirty = 0, $scope.message = {
-    public: true, finish: false, to: []
+    finish: false, to: []
   });
   $scope.$watchCollection('message', _.throttle(function(value) {
     Storage.set('compose', value);
@@ -184,9 +184,6 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
   $scope.selected = function(id) {
     return $scope.message.to.indexOf(id) !== -1;
   };
-  $scope.toggle_locked = function() {
-    $scope.message.public = !$scope.message.public;
-  };
   $scope.toggle_finish = function() {
     $scope.message.finish = !$scope.message.finish;
   };
@@ -205,7 +202,7 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
 
   $scope.reset = function() {
     $scope.message = {
-      public: true, to: [], finish: false
+      to: [], finish: false
     };
     $scope.state.write = true;
     $scope.dirty = 0;
@@ -218,10 +215,8 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
     var msg = $scope.message;
     $scope.sending = true;
     User.messages.send({
-      title: msg.title,
       data: msg.data,
       to: msg.to,
-      public: msg.public,
       finish: msg.finish,
       prev: parseInt(msg.prev)
     }).then(function(data) {
