@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Administration Page: Manage Posts</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a id="mystery-title" class="navbar-brand" href="/administration">Manage Posts</a>
+      </div>
+      <div class="collapse navbar-collapse" ng-controller="Navbar">
+        <ul class="nav navbar-nav navbar-right">
+          <li style="padding-right: 10px;"><button onclick="document.location='/';" class="btn btn-default navbar-btn">Volver al Juego</button></li>
+          <li><button onclick="document.location='/logoff';" class="btn btn-warning navbar-btn">Salir</button></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="main-content">
+
+      <div>
+        <noscript>
+          <div class="alert alert-danger"><strong>JavaScript Disabled!</strong> This site uses JavaScript to provide an efficient and responsive interface, please enable JavaScript!</div>
+        </noscript>
+      </div>
+
+      <ol class="breadcrumb">
+        <li><a href="/administration">Root</a></li>
+        <li><a href="/administration/session?key={{ session.key.urlsafe() }}">Session: {{ session.name }}</a></li>
+        <li class="active">Posts</li>
+      </ol>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Posts</h3>
+        </div>
+        <div class="panel-body">
+          <div class="alert alert-info">A <strong>post</strong> is a message in a specific <strong>session</strong>, made by a specific <strong>character</strong> in that session, that goes to all characters in the session. A post can have a <strong>target character</strong>, and if so, can optionally <strong>require a reply</strong> from that character.</div>
+          <table class="table">
+            <thead>
+              <tr><th>#</th><th>Sender</th><th>Target</th><th>Message Extract</th><th>Awaiting Response</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {% if not posts %}
+                <tr><td colspan="6" style="text-align: center;"><div style="margin-bottom: 0px;" class="alert alert-warning">No posts found. Go to the main front-end interface to make posts.</div></td></tr>
+              {% endif %}
+              {% for post in posts %}
+                <tr><td><span class="label label-default">{{ post.key.id() }} </span></td><td><img src="/img/{{ avatars[post.cid] }}" class="user-avatar-small">{{ names[post.cid] }}</td><td>{% if post.target == None %}General Post{% else %}<img src="/img/{{ avatars[post.target] }}" class="user-avatar-small">{{ names[post.target] }}{% endif %}</td><td>{{ post.msg if len(post.msg) < extract_limit else post.msg[:extract_limit] + "..." }}</td><td>{% if post.needs_reply %}<span class="glyphicon glyphicon-time"></span>{% else %}<span class="glyphicon glyphicon-ok-circle"></span>{% endif %}</td><td><a href="/administration/post?key={{ post.key.urlsafe() }}" class="btn btn-info">View Post</a></td></tr></form>
+              {% endfor %}
+              {% if len(posts) >= limit %}
+                <tr><td colspan="6" style="text-align: center;"><div style="margin-bottom: 0px;" class="alert alert-danger">Current post view is truncated. This is a known shortcoming - please contact your developer.</div></td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/lib/jquery/jquery.js"></script>
+  <script src="/lib/underscore/underscore.js"></script>
+  <script src="/lib/bootstrap/bootstrap.js"></script>
+</body>
+</html>
+{% endautoescape %}

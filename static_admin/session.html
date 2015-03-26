@@ -141,7 +141,7 @@
                   <tr><td colspan="4" style="text-align: center;"><div style="margin-bottom: 0px;" class="alert alert-warning">No characters defined. Modify the template for this session to add characters.</div></td></tr>
                 {% endif %}
                 {% for character in characters %}
-                  <form method="post" action="/administration/assign_character"><input type="hidden" name="key" value="{{ session.key.urlsafe() }}"><tr><td><span class="label label-default">{{ character.key.id() }} </span></td><td>{{ character.name }}</td><td>{{ character.avatar }}</td><td><input class="form-control" type="text" name="email" value="{{ assignment_map[character.key] }}"></td><td><div class="btn-group"><button class="btn btn-primary" type="submit">Assign</button><a href="/administration/character?key={{ character.key.urlsafe() }}" class="btn btn-info">View Template</a></div></td></tr></form>
+                  <form method="post" action="/administration/assign_character"><input type="hidden" name="key" value="{{ session.key.urlsafe() }}"><input type="hidden" name="charid" value="{{ character.key.urlsafe() }}"><tr><td><span class="label label-default">{{ character.key.id() }} </span></td><td>{{ character.name }}</td><td>{{ character.avatar }}</td><td><input class="form-control" type="text" name="email" value="{{ assignment_map[character.key] }}"></td><td><div class="btn-group"><button class="btn btn-primary" type="submit">Assign</button><a href="/administration/character?key={{ character.key.urlsafe() }}" class="btn btn-info">View Template</a></div></td></tr></form>
                 {% endfor %}
               </tbody>
             </table>

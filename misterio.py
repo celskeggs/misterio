@@ -312,6 +312,39 @@ class AdminPage(webapp2.RequestHandler):
 					return self.display_error("The template that you are trying to use either does not exist or has been deleted.")
 				session = Session(template=key, name=name, activated=[], assignments=[]).put()
 				self.redirect("/administration/session?key=%s" % session.urlsafe())
+		elif rel == "set_session_name":
+			succ, name, key = self.get_reqs_key("name", "Session")
+			if succ:
+				session = key.get()
+				session.name = name
+				session.put()
+				self.redirect("/administration/session?key=%s" % key.urlsafe())
+		elif rel == "toggle_message_set":
+			succ, name, key = self.get_reqs_key("name", "Session")
+			if succ:
+				session = key.get()
+				if name in session.activated:
+					session.activated.remove(name)
+				else:
+					session.activated.append(name)
+				session.put()
+				self.redirect("/administration/session?key=%s#message-sets" % key.urlsafe())
+		elif rel == "assign_character":
+			succ, key = self.get_reqs_key("Session")
+			charid = self.safe_get_key("Template/Character", "charid")
+			email = self.request.get("email", None)
+			if succ and charid != None:
+				session = key.get()
+				toremove = []
+				for assignment in session.assignments:
+					if assignment.cid.get() == None or assignment.cid == charid:
+						toremove.append(assignment)
+				for target in toremove:
+					session.assignments.remove(target)
+				if email != None and email != "":
+					session.assignments.append(Assignment(cid=charid, player_email=email))
+				session.put()
+				self.redirect("/administration/session?key=%s#characters" % key.urlsafe())
 		else:
 			self.response.headers["Content-Type"] = "text/plain"
 			self.response.write("ADMIN: %s: %s" % (rel, self.request.params))
@@ -355,6 +388,22 @@ class AdminPage(webapp2.RequestHandler):
 					template_names = [templ.name for templ in template_names]
 					assignment_map = dict((assignment.cid, assignment.player_email) for assignment in session.assignments)
 					self.response.write(jt.render({"session": session, "template": template, "characters": characters, "assignment_map": assignment_map, "template_names": template_names}))
+		elif rel == "posts":
+			self.response.headers["Content-Type"] = "text/html"
+			jt = JINJA_ENVIRONMENT.get_template('posts.html')
+
+			key = self.safe_get_key("Session")
+			if key != None:
+				session = key.get()
+				if session == None:
+					return self.display_error("The session that you are trying to view either does not exist or has been deleted.")
+				limit = 10
+				posts = Post.query().fetch(limit)
+				charids = list(set(post.cid for post in posts).union(set(post.target for post in posts if post.target != None)))
+				chars = ndb.get_multi(charids)
+				avatarmap = dict((char.key, char.avatar) for char in chars)
+				namemap = dict((char.key, char.name) for char in chars)
+				self.response.write(jt.render({"session": session, "posts": posts, "limit": limit, "avatars": avatarmap, "names": namemap}))
 		elif rel == "character":
 			self.response.headers["Content-Type"] = "text/html"
 			jt = JINJA_ENVIRONMENT.get_template('character.html')
