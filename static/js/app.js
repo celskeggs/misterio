@@ -3,7 +3,6 @@
 // declare app level module which depends on filters, and services
 var app = angular.module('misterio', [
   'ngRoute',
-  'misterio.filters',
   'misterio.services',
   'misterio.directives',
   'misterio.controllers'
@@ -49,12 +48,12 @@ app.run(function($rootScope, $location, User) {
     }
   };
 
-  $rootScope.instances = function() {
-    return [1, 2, 3, 4];
-  };
-
   $rootScope.username = function() {
     return User.user.name;
+  };
+
+  $rootScope.sessionname = function() {
+    return User.user.session;
   };
 
   $rootScope.ternary = function(cond, a, b) {
@@ -64,12 +63,6 @@ app.run(function($rootScope, $location, User) {
   $rootScope.blocks = function(text) {
     return text ? text.split(/\n+/g) : [];
   };
-
-  $rootScope.$on('$routeChangeStart', function(event, next, current) {
-    if (document.getElementById("mystery-title").innerText.match(/A Mystery/)) {
-      document.getElementById("mystery-title").innerText = "Do not use Google Translate";
-    }
-  });
 
   $rootScope.onShouldUpdateInbox = function(call) { // I don't know what I'm doing.
     $rootScope.$on('$routeChangeStart', function(event, next, current) {

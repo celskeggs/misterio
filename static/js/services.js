@@ -94,28 +94,11 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q',
   var User = {
     user: {
       id: null,
-      name: null
-    },
-    inboxes: function() {
-      return use($http.get('get-counts.php', {
-        params: {}
-      }));
+      name: null,
+      session: null
     },
     others: [],
-    userLookup: {}, // hmmm
-    fetch: function() {
-      return User.users.all().then(function(data) {
-        return User.user.id;
-      }, function(err) {
-        if (err.status === 403) {
-          User.logout();
-        }
-        throw err;
-      });
-    },
-    logout: function() {
-      window.location = '/logoff';
-    },
+    userLookup: {},
     avatars: {
       get: function() {
         return use($http.get('get-avatars.php', {
@@ -175,35 +158,26 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q',
           }
         }));
       },
-      toggleFinalize: function(id) {
-        return use($http.post('qedit-message.php', {}, {
-          params: {
-            id: id,
-            operation: "finalize"
-          }
-        }));
-      },
       send: function(message) {
         // message: {title, data, to: [], prev: ?, public}
         return use($http.post('send-message.php', message, {}));
       }
-    },
-    users: {
-      all: function() {
-        return use($http.get('/dynamic/users', {}), function(data) {
-          var others = data.users, cid = data.cid
-          User.others.length = 0;
-          User.others.push.apply(User.others, others);
-          User.userLookup = {};
-          for (var i = 0; i < others.length; i++) {
-            User.userLookup[others[i].cid] = others[i];
-          }
-          User.user.id = cid;
-          User.user.name = User.userLookup[cid].name;
-        });
-      },
     }
   };
-  User.fetch();
+  use($http.get('/dynamic/users', {}), function(data) {
+    var others = data.users, cid = data.me, session_name = data.session;
+    User.others.push.apply(User.others, others);
+    User.userLookup = {};
+    for (var i = 0; i < others.length; i++) {
+      User.userLookup[others[i].cid] = others[i];
+    }
+    User.user.id = cid;
+    User.user.name = User.userLookup[cid].name;
+    User.user.session = session_name;
+  }).then(function(data) {
+  }, function(err) {
+    throw err;
+  });
   return User;
 }]);
+

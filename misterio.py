@@ -110,23 +110,26 @@ class SelectPage(VerifyingHandler):
 		charmap = dict((char.key, char) for char in ndb.get_multi(charids))
 		characters = [(charmap[key], session) for key, session in characters]
 
-		self.response.write(jt.render({"username": users.get_current_user().nickname(), "characters": characters}))
+		self.response.write(jt.render({"username": users.get_current_user().nickname(), "characters": characters, "admin": users.is_current_user_admin()}))
 class LogoffPage(webapp2.RequestHandler):
 	def get(self):
 		self.response.delete_cookie("character")
-		self.redirect(users.create_logout_url('/'))
+		if self.request.get("mode", "") == "partial":
+			self.redirect("/select")
+		else:
+			self.redirect(users.create_logout_url('/'))
 class DynamicPage(VerifyingHandler):
 	def get(self, dynamic_id):
 		character, session = self.get_and_verify_character()
-		self.response.headers["Content-Type"] = "application/json"
 		if dynamic_id == "users":
 			chars = Character.query(ancestor=session.template)
 			chard = []
 			for char in chars:
-				chard.append({"cid": char.key.id(), "avatar": char.avatar, "name": char.name})
+				chard.append({"cid": char.key.id(), "avatar": char.avatar, "name": char.name, "session": session.name})
 			o = {"me": character.key.id(), "session": session.name, "users": chard}
 		else:
 			return self.abort(404)
+		self.response.headers["Content-Type"] = "application/json"
 		self.response.write(json.dumps(o))
 
 application = webapp2.WSGIApplication([

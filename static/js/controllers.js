@@ -244,51 +244,6 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
   }
 }]);
 
-app.controller('Broadcast', ['$scope', '$location', '$routeParams', 'User',
-    function Compose($scope, $location, $routeParams, User) {
-  $scope.user = function(cid) {
-    return User.userLookup[cid];
-  };
-  $scope.message = "";
-
-  var delimiter = "====================\n";
-
-  $scope.generate = function() {
-    var after = false;
-    for (var index in User.others) {
-      if (after) { $scope.message += delimiter; }
-      after = true;
-      var user = User.others[index];
-      $scope.message += user.cid + "||| Message title goes here |||\nMessage body for " + user.name + " goes here.\n";
-    }
-  };
-
-  $scope.submit = function() {
-    var msg = $scope.message;
-    var parts = msg.split(delimiter);
-    var messages = [];
-    for (var index in parts) {
-      var part = parts[index];
-      var sections = part.split("|||");
-      if (sections.length != 3) {
-        $scope.$emit('flash', 'error', 'Bad format', 'The delimiter ||| was found ' + sections.length + ' times instead of 3 times.', {dismissable: true});
-        return;
-      }
-      var cid = sections[0], title = sections[1], contents = sections[2];
-      title = title.replace(/^[ \t\n]+|[ \t\n]+$/g, ""); // Trim string of whitespace.
-      contents = contents.replace(/^[ \t\n]+|[ \t\n]+$/g, "");
-      messages.push({"title": title, "data": contents, "public": false, "finish": true, "to": [parseInt(cid)]});
-    }
-    for (var mid in messages) {
-      var message = messages[mid];
-      var fn = function(data) {
-        $scope.$emit('flash', 'info', 'Enviado!', 'Tu mensaje numero ' + this.mid + "/" + messages.length + " ha enviado!", {dismissable: true});
-      }.bind({"mid": parseInt(mid) + 1});
-      User.messages.send(message).then(fn);
-    }
-  };
-}]);
-
 app.controller('Users', ['$scope', '$location', 'User',
     function Users($scope, $location, User) {
   $scope.showCredits = false;
@@ -297,16 +252,6 @@ app.controller('Users', ['$scope', '$location', 'User',
 
   $scope.toggleCredits = function() {
     $scope.showCredits = !$scope.showCredits;
-  };
-}]);
-
-app.controller('AddUser', ['$scope', '$location', 'User',
-    function AddUser($scope, $location, User) {
-  $scope.user = {};
-  $scope.submit = function() {
-    User.users.add($scope.user).then(function(data) {
-      $location.url('/users/' + data.cid);
-    });
   };
 }]);
 
@@ -379,19 +324,8 @@ app.controller('Profile', ['$scope', '$location', '$routeParams', 'User',
   $scope.get();
 }]);
 
-app.controller('Navbar', ['$scope', '$location', 'User', function Navbar($scope, $location, User) {
+app.controller('Navbar', ['$scope', 'User', function Navbar($scope, User) {
   $scope.User = User;
-  $scope.selectInstance = function(inst) {
-    if (confirm("Are you sure that you want to switch to instance " + inst + "?")) {
-      User.users.move(User.user.id, inst).then(function (data) {
-        User.users.all().then(function(data) {
-          $scope.$emit('flash', 'info', 'Movido!', 'Estás en instancia ' + inst, {dismissable:true});
-        });
-      });
-      $location.path('/users');
-    }
-  };
-  $scope.logout = User.logout;
 }]);
 
 app.controller('Flash', ['$scope', '$rootScope',

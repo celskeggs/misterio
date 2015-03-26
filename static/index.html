@@ -25,27 +25,18 @@
           <li><a nav-link="^/$" href="./">Correos <span ng-cloak feed-counter class="badge">...</span></a></li>
           <li><a nav-link="^/compose(/[0-9]+)?$" href="./compose">Redactar</a></li>
           <li><a nav-link="^/users$" href="./users">Personajes</a></li>
-          <li ng-if="!access()"><a nav-link="^/users/2$" href="./users/2">Mensajes Importantes</a></li>
-          <li ng-if="access()"><a nav-link="^/broadcast$" href="./broadcast">Emitir</a></li>
         </ul>
         <ul class="nav navbar-nav navbar-right" ng-cloak>
-          <li class="btn-group">
-            <button ng-repeat="inst in instances()" class="navbar-btn btn" ng-class="User.user.instance == inst ? 'btn-default' : 'btn-warning'" ng-click="selectInstance(inst)" ng-disabled="!access() || User.user.instance == inst">{{inst}}</button>
-          </li>
           <li><div class="navbar-btn name-slot">{{username()}}</div></li>
-          <li><button class="btn btn-default navbar-btn" ng-click="logout()">Salir</button></li>
+          <li><div class="navbar-btn name-slot">{{sessionname()}}</div></li>
+          <li><button class="btn btn-default navbar-btn" onclick="window.location = '/logoff?mode=partial';">Salir</button></li>
         </ul>
       </div>
     </div>
   </div>
 
-  <div class='modal-body' ng-if="false">
-    Testing...
-  </div>
-
   <div class="container">
     <div class="main-content">
-
       <div ng-controller="Flash">
         <noscript>
           <div class="alert alert-danger"><strong>JavaScript Disabled!</strong> This site uses JavaScript to provide an efficient and responsive interface, please enable JavaScript!</div>
@@ -57,7 +48,6 @@
       </div>
 
       <div ng-view></div>
-
     </div>
   </div>
 
@@ -72,7 +62,6 @@
   <script src="js/app.js"></script>
   <script src="js/services.js"></script>
   <script src="js/controllers.js"></script>
-  <script src="js/filters.js"></script>
   <script src="js/directives.js"></script>
 </body>
 </html>

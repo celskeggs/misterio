@@ -52,7 +52,19 @@
           </div>
         {% endfor %}
       {% else %}
-        <div class="alert alert-danger">You have no characters! Please contact your session administrator.</div>
+        {% if not admin %}
+          <div class="alert alert-danger">You have no characters! Please contact your session administrator.</div>
+        {% endif %}
+      {% endif %}
+      {% if admin %}
+        <div class="col-xs-3">
+          <div class="character-selection">
+            <a href="/administration">
+              <img class="user-avatar-big" src="/img/admin_entry.png" />
+              <div class="character-name">Management Backend</div>
+            </a>
+          </div>
+        </div>
       {% endif %}
     </div>
   </div>
