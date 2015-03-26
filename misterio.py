@@ -124,7 +124,7 @@ class DynamicPage(VerifyingHandler):
 	def build_post_obj(self, post):
 		return {"id": post.key.id(), "data": post.msg, "from": post.cid.id(), "prev": post.response_to and post.response_to.id(), "date": int(post.date.timestamp() * 1000), "to": post.target and post.target.id()}
 	def get(self, dynamic_id):
-		# TODO: message, feed, inbox, profile, post
+		# TODO: feed, inbox, profile, post
 		character, session = self.get_and_verify_character()
 		if dynamic_id == "users":
 			chars = Character.query(ancestor=session.template)
@@ -132,7 +132,7 @@ class DynamicPage(VerifyingHandler):
 			for char in chars:
 				chard.append({"cid": char.key.id(), "avatar": char.avatar, "name": char.name, "session": session.name})
 			o = {"me": character.key.id(), "session": session.name, "users": chard}
-		elif dynamic_id == "message":
+		elif dynamic_id == "get-post":
 			mid = self.request.get("id", None)
 			if mid == None or not mid.isdigit():
 				return self.abort(400)
@@ -142,6 +142,22 @@ class DynamicPage(VerifyingHandler):
 			o = self.build_post_obj(post)
 		elif dynamic_id == "inbox-count":
 			o = {"inbox": 0, "msgs": 0} # TODO: do this properly
+		elif dynamic_id == "feed":
+			limit = self.request.get("limit", "10")
+			if not limit.isdigit():
+				return self.abort(400)
+			limit = max(1, min(int(limit), 20))
+
+			begin = self.request.get("begin", None)
+			if begin != None:
+				begin = Cursor(urlsafe=begin)
+
+			direction = self.request.get("direction", "forward")
+			reverse = direction == "reverse"
+
+			q = Post.query().order((-Post.date) if reverse else (Post.date))
+			posts, cursor, more = q.fetch_page(limit, start_cursor=(begin.reversed() if reverse else begin))
+			o = {"posts": [self.build_post_obj(post) for post in posts], "next": (cursor.reversed().urlsafe() if reverse else cursor.urlsafe()) if more else None}
 		else:
 			return self.abort(404)
 		self.response.headers["Content-Type"] = "application/json"

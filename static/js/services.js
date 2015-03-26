@@ -101,17 +101,26 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q',
     userLookup: {},
     messages: {
       get: function(id) {
-        return use($http.get('/dynamic/message', {
+        return use($http.get('/dynamic/get-post', {
           params: {
             id: id
           }
         }));
       },
-      all: function(offset, limit) {
-        return use($http.get('/dynamic/feed', {
+      startFeed: function(limit, rev) {
+        return use($http.get('/dynamic/feed', { // needs to be fixed
           params: {
-            offset: offset,
-            limit: limit
+            limit: limit,
+            reverse: rev ? "reverse" : "forward"
+          }
+        }));
+      },
+      continueFeed: function(cursor, limit, rev) {
+        return use($http.get('/dynamic/feed', { // needs to be fixed
+          params: {
+            limit: limit,
+            begin: cursor,
+            reverse: rev ? "reverse" : "forward"
           }
         }));
       },
@@ -137,7 +146,7 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q',
       },
       send: function(message) {
         // message: {data, to: [], prev: ?}
-        return use($http.post('/dynamic/post', message, {}));
+        return use($http.post('/dynamic/new-post', message, {}));
       }
     }
   };

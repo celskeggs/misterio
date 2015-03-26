@@ -12,67 +12,67 @@ app.controller('Feed', ['$scope', '$location', 'User', '$rootScope',
 
   $scope.linkurl = "/";
 
-  $scope.total = 0;
-  $scope.offset = 0;
+  $scope.cursor = null;
+  $scope.cursor_next = null;
   $scope.limit = 10;
-  $scope.get = function() {
+
+  var handle_messages = function(data) {
+    $rootScope.tellFeedListeners(); // TODO: is this in the right spot?
+    $scope.loading = false;
+    $scope.messages = [];
+    for (var i=0; i<data.posts.length; i++) {
+      var d = data.posts[i];
+      if (d.prev && !d.prevobj) {
+        // TODO: have this be sent by the server instead of sending a stampede
+        User.messages.get(d.prev).then(function (po) {
+          this.prevobj = po;
+        }.bind(d));
+      }
+      $scope.messages.push(d);
+    }
+  };
+
+  $scope.restart = function() {
     $scope.messages = [];
     $scope.loading = true;
-    User.messages.all($scope.offset, $scope.limit)
-      .then(function(data) {
-      $rootScope.tellFeedListeners();
-      $scope.loading = true;
-      $scope.messages = [];
-      for (var i=0; i<data.data.length; i++) {
-        var d = data.data[i];
-        if (d.prev && !d.prevobj) {
-          User.messages.get(d.prev).then(function (po) {
-            this.prevobj = po;
-          }.bind(d));
-        }
-        $scope.messages.push(d);
-      }
-      $scope.total = data.total;
+    User.messages.startFeed($scope.limit).then(function(data) {
+      handle_messages(data);
+      $scope.cursor = null;
+      $scope.cursor_next = data.next;
     });
   };
 
-  $scope.showing = -1;
-  $scope.show = function(id) {
-    if ($scope.showing == id) {
-      $scope.showing = -1;
-    } else {
-      $scope.showing = id;
-    }
-  };
-  $scope.isshowing = function(id) {
-    return $scope.showing == id;
-  };
-
   $scope.canNext = function() {
-    return $scope.offset + $scope.limit < $scope.total;
+    return $scope.cursor_next !== null;
   };
   $scope.canPrev = function() {
-    return $scope.offset !== 0;
+    return $scope.cursor !== null;
   };
 
   $scope.next = function() {
     if ($scope.canNext()) {
-      $scope.offset += $scope.limit;
-      $scope.get();
+      $scope.messages = [];
+      $scope.loading = true;
+      User.messages.continueFeed($scope.cursor_next, $scope.limit).then(function(data) {
+        handle_messages(data);
+        $scope.cursor = $scope.cursor_next;
+        $scope.cursor_next = data.next;
+      });
     }
   };
   $scope.prev = function() {
     if ($scope.canPrev()) {
-      if ($scope.offset < $scope.limit) {
-        $scope.offset = 0;
-      } else {
-        $scope.offset -= $scope.limit;
-      }
-      $scope.get();
+      $scope.messages = [];
+      $scope.loading = true;
+      User.messages.continueFeed($scope.cursor, $scope.limit, true).then(function(data) {
+        handle_messages(data);
+        $scope.cursor_next = $scope.cursor;
+        $scope.cursor = data.next;
+      });
     }
   };
 
-  $scope.get();
+  $scope.restart();
 }]);
 
 app.controller('Inbox', ['$scope', '$location', 'User',
