@@ -71,7 +71,7 @@ textarea {
 .avatar-select-elem {
   border: 2px dotted #00f;
   border-radius: 5px;
-  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 .avatar-select-elem img {
