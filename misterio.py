@@ -180,7 +180,7 @@ class DynamicPage(VerifyingHandler):
 			o = self.build_post_obj(post)
 		elif dynamic_id == "inbox-count":
 			o = {"inbox": 0, "msgs": 0} # TODO: do this properly
-		elif dynamic_id == "feed":
+		elif dynamic_id in ("feed", "inbox"):
 			limit = self.request.get("limit", "10")
 			if not limit.isdigit():
 				return self.abort(400)
@@ -193,7 +193,13 @@ class DynamicPage(VerifyingHandler):
 			direction = self.request.get("direction", "forward")
 			reverse = direction == "reverse"
 
-			q = Post.query(ancestor=session.key).order((Post.date) if reverse else (-Post.date))
+			if dynamic_id == "inbox":
+				q = Post.query(Post.target == character.key, Post.needs_reply == True, ancestor=session.key)
+				print "INBOX FETCH... COUNT", q.count()
+				q = Post.query(Post.target == character.key, Post.needs_reply == True, ancestor=session.key)
+			else: # normal feed
+				q = Post.query(ancestor=session.key)
+			q = q.order((Post.date) if reverse else (-Post.date))
 			posts, cursor, more = q.fetch_page(limit, start_cursor=(begin.reversed() if reverse else begin))
 			o = {"posts": [self.build_post_obj(post) for post in posts], "next": (cursor.reversed().urlsafe() if reverse else cursor.urlsafe()) if more else None}
 		else:

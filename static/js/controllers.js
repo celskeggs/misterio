@@ -10,14 +10,16 @@ app.controller('Feed', ['$scope', '$location', 'User', '$rootScope',
     return User.userLookup[id];
   };
 
-  $scope.linkurl = "/";
+  $scope.is_inbox = ($location.path() == "/inbox");
 
   $scope.cursor = null;
   $scope.cursor_next = null;
   $scope.limit = 10;
 
   var handle_messages = function(data) {
-    $rootScope.tellFeedListeners(); // TODO: is this in the right spot?
+    if (!$scope.is_inbox) {
+      $rootScope.tellFeedListeners(); // TODO: is this in the right spot?
+    }
     $scope.loading = false;
     $scope.messages = [];
     for (var i=0; i<data.posts.length; i++) {
@@ -35,7 +37,7 @@ app.controller('Feed', ['$scope', '$location', 'User', '$rootScope',
   $scope.restart = function() {
     $scope.messages = [];
     $scope.loading = true;
-    User.messages.startFeed($scope.limit).then(function(data) {
+    User.messages.startFeed($scope.limit, false, $scope.is_inbox).then(function(data) {
       handle_messages(data);
       $scope.cursor = null;
       $scope.cursor_next = data.next;
@@ -53,7 +55,7 @@ app.controller('Feed', ['$scope', '$location', 'User', '$rootScope',
     if ($scope.canNext()) {
       $scope.messages = [];
       $scope.loading = true;
-      User.messages.continueFeed($scope.cursor_next, $scope.limit).then(function(data) {
+      User.messages.continueFeed($scope.cursor_next, $scope.limit, false, $scope.is_inbox).then(function(data) {
         handle_messages(data);
         $scope.cursor = $scope.cursor_next;
         $scope.cursor_next = data.next;
@@ -64,7 +66,7 @@ app.controller('Feed', ['$scope', '$location', 'User', '$rootScope',
     if ($scope.canPrev()) {
       $scope.messages = [];
       $scope.loading = true;
-      User.messages.continueFeed($scope.cursor, $scope.limit, true).then(function(data) {
+      User.messages.continueFeed($scope.cursor, $scope.limit, true, $scope.is_inbox).then(function(data) {
         handle_messages(data);
         $scope.cursor_next = $scope.cursor;
         $scope.cursor = data.next;
@@ -73,76 +75,6 @@ app.controller('Feed', ['$scope', '$location', 'User', '$rootScope',
   };
 
   $scope.restart();
-}]);
-
-app.controller('Inbox', ['$scope', '$location', 'User',
-    function Inbox($scope, $location, User) {
-  $scope.user = function(id) {
-    return User.userLookup[id];
-  };
-
-  $scope.linkurl = "/inbox";
-
-  $scope.total = 0;
-  $scope.offset = 0;
-  $scope.limit = 10;
-
-  $scope.get = function() {
-    $scope.messages = [];
-    User.messages.inbox($scope.offset, $scope.limit)
-      .then(function(data) {
-      $scope.messages = [];
-      for (var i=0; i<data.data.length; i++) {
-        var d = data.data[i];
-        if (d.prev && !d.prevobj) {
-          User.messages.get(d.prev).then(function (po) {
-            this.prevobj = po;
-          }.bind(d));
-        }
-        $scope.messages.push(d);
-      }
-      $scope.total = data.total;
-    });
-  };
-
-  $scope.canNext = function() {
-    return $scope.offset + $scope.limit < $scope.total;
-  };
-
-  $scope.showing = -1;
-  $scope.show = function(id) {
-    if ($scope.showing == id) {
-      $scope.showing = -1;
-    } else {
-      $scope.showing = id;
-    }
-  };
-  $scope.isshowing = function(id) {
-    return $scope.showing == id;
-  };
-
-  $scope.canPrev = function() {
-    return $scope.offset !== 0;
-  };
-
-  $scope.next = function() {
-    if ($scope.canNext()) {
-      $scope.offset += $scope.limit;
-      $scope.get();
-    }
-  };
-  $scope.prev = function() {
-    if ($scope.canPrev()) {
-      if ($scope.offset < $scope.limit) {
-        $scope.offset = 0;
-      } else {
-        $scope.offset -= $scope.limit;
-      }
-      $scope.get();
-    }
-  };
-
-  $scope.get();
 }]);
 
 app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Storage',
@@ -256,8 +188,6 @@ app.controller('Profile', ['$scope', '$location', '$routeParams', 'User',
   $scope.user = function(id) {
     return User.userLookup[id];
   };
-
-  $scope.linkurl = "/users/" + cid;
 
   $scope.total = 0;
   $scope.offset = 0;
