@@ -41,51 +41,23 @@ app.directive('focusMe', function() {
 });
 
 // Added to update globals
-app.directive('inboxCounter', function($interval, User) {
+app.directive('inboxCounter', function(User) {
   return function(scope, element, attrs) {
-    var stopUpdate;
-    function updateCount() {
-      if (User.user.id === null) {
-        element.text("");
-      } else {
-        User.messages.inboxCount().then(function (data) {
-          scope.inboxCount = data;
-          element.text(data.inbox ? data.inbox : "");
-        });
-      }
+    function updateCount(event, data) {
+      console.log("GOT NEW DATA 1:", data)
+      element.text(data.inbox ? data.inbox : "");
     }
-    scope.onShouldUpdateInbox(updateCount);
-    updateCount();
-    stopUpdate = $interval(updateCount, 10000);
-    element.bind('$destroy', function() {
-      $interval.cancel(stopUpdate);
-    });
+    scope.$on("messageCountUpdate", updateCount);
   }
 });
 
-app.directive('feedCounter', function($interval, User) {
+app.directive('feedCounter', function(User) {
   return function(scope, element, attrs) {
-    var stopUpdate;
-    element.base = -1000;
-    function updateCount() {
-      if (User.user.id === null) {
-        element.text("");
-      } else {
-        User.messages.inboxCount().then(function (data) {
-          var cnt = data.msgs - element.base;
-          element.text(cnt ? cnt : "");
-        });
-      }
+    function updateCount(event, data) {
+      console.log("GOT NEW DATA 2:", data)
+      element.text(data.feed ? data.feed : "");
     }
-    scope.onShouldUpdateInbox(updateCount);
-    var cfeed = function() { User.messages.inboxCount().then(function(data) { element.base = data.msgs; }); updateCount(); };
-    cfeed();
-    scope.onShouldClearFeed(cfeed);
-    updateCount();
-    stopUpdate = $interval(updateCount, 10000);
-    element.bind('$destroy', function() {
-      $interval.cancel(stopUpdate);
-    });
+    scope.$on("messageCountUpdate", updateCount);
   }
 });
 

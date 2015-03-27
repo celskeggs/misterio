@@ -179,7 +179,7 @@ class DynamicPage(VerifyingHandler):
 				return self.abort(404) # gone
 			o = self.build_post_obj(post)
 		elif dynamic_id == "inbox-count":
-			o = {"inbox": 0, "msgs": 0} # TODO: do this properly
+			o = {"inbox": 0, "feed": 0} # TODO: do this properly
 		elif dynamic_id in ("feed", "inbox"):
 			limit = self.request.get("limit", "10")
 			if not limit.isdigit():

@@ -32,10 +32,30 @@ app.config(['$locationProvider', function($locationProvider) {
   $locationProvider.html5Mode(true);
 }]);
 
-app.run(function($rootScope, $location, User) {
+app.run(function($rootScope, $interval, $location, User) {
   $rootScope.city = "Toluca";
 
-  $rootScope.inboxCount = 0;
+  $rootScope.messagesSince = Date.now() - 5000;
+
+  function updateCount() {
+    User.messages.inboxCount($rootScope.messagesSince).then(function (data) {
+      $rootScope.$broadcast("messageCountUpdate", data);
+    });
+  }
+  $rootScope.clearFeed = function() {
+    $rootScope.messagesSince = Date.now() - 5000; // keep five seconds of messages
+    updateCount();
+  };
+  $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
+    if (next.originalPath == "/") {
+      $rootScope.clearFeed();
+    } else {
+      updateCount();
+    }
+  });
+  updateCount();
+  var stopCount = $interval(updateCount, 10000);
+  // stopCount not currently used.
 
   $rootScope.page = {
     title: 'Un Misterio en ' + $rootScope.city,
@@ -62,29 +82,6 @@ app.run(function($rootScope, $location, User) {
 
   $rootScope.blocks = function(text) {
     return text ? text.split(/\n+/g) : [];
-  };
-
-  $rootScope.onShouldUpdateInbox = function(call) { // I don't know what I'm doing.
-    $rootScope.$on('$routeChangeStart', function(event, next, current) {
-      call();
-    });
-  };
-
-  $rootScope.feedListeners = [];
-  
-  $rootScope.tellFeedListeners = function() {
-    for (var i=0; i<$rootScope.feedListeners.length; i++) {
-      $rootScope.feedListeners[i]();
-    }
-  };
-
-  $rootScope.onShouldClearFeed = function(call) { // I don't know what I'm doing.
-    $rootScope.feedListeners.push(call);
-    $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
-      if (next.originalPath == "/") {
-        call();
-      }
-    });
   };
 });
 

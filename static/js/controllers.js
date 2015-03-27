@@ -17,9 +17,6 @@ app.controller('Feed', ['$scope', '$location', 'User', '$rootScope',
   $scope.limit = 10;
 
   var handle_messages = function(data) {
-    if (!$scope.is_inbox) {
-      $rootScope.tellFeedListeners(); // TODO: is this in the right spot?
-    }
     $scope.loading = false;
     $scope.messages = [];
     for (var i=0; i<data.posts.length; i++) {
@@ -31,6 +28,9 @@ app.controller('Feed', ['$scope', '$location', 'User', '$rootScope',
         }.bind(d));
       }
       $scope.messages.push(d);
+    }
+    if (!$scope.is_inbox) {
+      $rootScope.clearFeed(); // TODO: is this in the right spot?
     }
   };
 

@@ -124,8 +124,12 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q',
           }
         }));
       },
-      inboxCount: function() {
-        return use($http.get('/dynamic/inbox-count', {}));
+      inboxCount: function(since) {
+        return use($http.get('/dynamic/inbox-count', {
+          params: {
+            since: since
+          }
+        }));
       },
       profile: function(cid, offset, limit) {
         return use($http.get('/dynamic/profile', {
