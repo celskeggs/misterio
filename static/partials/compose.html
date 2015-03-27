@@ -5,7 +5,7 @@
     </a>
     <div class="media-body">
       <h4><small>{{user(prev.from).name}}</small> <small ng-if="prev.to &amp;&amp; prev.to.length">&rarr; <span ng-repeat="target in prev.to">{{user(target).name}}</span></small> <span class="label label-default pull-right">{{prev.date | date:'short'}}</span></h4>
-      <p ng-repeat="block in blocks(prev.data)">{{block}}</p>
+      <div markdown-preview="prev.data">{{block}}</div>
     </div>
   </div>
   <p ng-hide="prev || prev === false">Loading...</p>

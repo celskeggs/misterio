@@ -36,7 +36,7 @@ app.config(['$locationProvider', function($locationProvider) {
 app.run(function($rootScope, $interval, $location, User) {
   $rootScope.city = "Toluca";
 
-  $rootScope.messagesSince = Date.now() - 5000;
+  $rootScope.messagesSince = Date.now() - 2000;
 
   function updateCount() {
     User.messages.inboxCount($rootScope.messagesSince).then(function (data) {
@@ -44,7 +44,7 @@ app.run(function($rootScope, $interval, $location, User) {
     });
   }
   $rootScope.clearFeed = function() {
-    $rootScope.messagesSince = Date.now() - 5000; // keep five seconds of messages
+    $rootScope.messagesSince = Date.now() - 2000; // keep five seconds of messages
     updateCount();
   };
   $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
@@ -55,7 +55,7 @@ app.run(function($rootScope, $interval, $location, User) {
     }
   });
   updateCount();
-  var stopCount = $interval(updateCount, 30000); // TODO: temporarily increased value - change back
+  var stopCount = $interval(updateCount, 10000);
   // stopCount not currently used.
 
   $rootScope.page = {

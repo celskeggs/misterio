@@ -138,21 +138,25 @@ class DynamicPage(VerifyingHandler):
 		if dynamic_id == "new-post":
 			jo = json.loads(self.request.body)
 			if type(jo) != dict:
+				logging.info('client provided a non-object over JSON!')
 				return self.abort(400)
 			to, prev, data, expect = jo.get("to", None), jo.get("prev", None), jo.get("data", None), jo.get("expect", None)
-			print "GOT JSON", jo, type(to), type(prev), type(data), type(expect)
-			if not ((type(to) == int or to == None) and (type(prev) == int or prev == None) and (type(data) == str or type(data) == unicode) and type(expect) == bool):
+			if not ((type(to) == int or type(to) == long or to == None) and (type(prev) == int or type(prev) == long or prev == None) and (type(data) == str or type(data) == unicode) and type(expect) == bool):
+				logging.info('client provided bad data: %s/%s/%s/%s!' % (type(to), type(prev), type(data), type(expect)))
 				return self.abort(400)
 			if to != None:
 				to = Character.get_by_id(to, parent=session.template)
 				if to == None: # character is gone
+					logging.info('client tried to access a character that doesn\'t exist!')
 					return self.abort(400)
 				to = to.key
 			elif expect:
+				logging.info('client expected a response but had no target!')
 				return self.abort(400) # can't be both expecting a response and not having a target
 			if prev != None:
 				prev = Post.get_by_id(prev, parent=session.key)
 				if prev == None: # post is gone
+					logging.info('client tried to access a post that doesn\'t exist!')
 					return self.abort(400)
 				if prev.needs_reply and prev.target == character.key:
 					prev.needs_reply = False
@@ -195,13 +199,14 @@ class DynamicPage(VerifyingHandler):
 			o = {"inbox": q.count(), "feed": qf.count()}
 		elif dynamic_id == "predefs":
 			sets = session.activated
-			glob_ms = Message.query(Message.charspec == False, Message.msid.IN(sets), ancestor=session.template).fetch()
-			char_ms = Message.query(Message.msid.IN(sets), ancestor=character.key).fetch()
-			messages = glob_ms + char_ms
-			messages.sort(key=lambda x: sets.index(x.msid))
 			msgout = []
-			for msg in messages:
-				msgout.append({"mid": msg.key.id(), "body": msg.body, "charspec": msg.charspec, "msid": msg.msid, "title": msg.title})
+			if sets: # if no sets, no messages!
+				glob_ms = Message.query(Message.charspec == False, Message.msid.IN(sets), ancestor=session.template).fetch()
+				char_ms = Message.query(Message.msid.IN(sets), ancestor=character.key).fetch()
+				messages = glob_ms + char_ms
+				messages.sort(key=lambda x: sets.index(x.msid))
+				for msg in messages:
+					msgout.append({"mid": msg.key.id(), "body": msg.body, "charspec": msg.charspec, "msid": msg.msid, "title": msg.title})
 			o = {"messages": msgout}
 		elif dynamic_id in ("feed", "inbox"):
 			limit = self.request.get("limit", "10")
