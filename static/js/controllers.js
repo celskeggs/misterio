@@ -34,17 +34,7 @@ app.controller('Feed', ['$scope', '$location', '$routeParams', 'User', '$rootSco
 
   var handle_messages = function(data) {
     $scope.loading = false;
-    $scope.messages = [];
-    for (var i=0; i<data.posts.length; i++) {
-      var d = data.posts[i];
-      if (d.prev && !d.prevobj) {
-        // TODO: have this be sent by the server instead of sending a stampede
-        User.messages.get(d.prev).then(function (po) {
-          this.prevobj = po;
-        }.bind(d));
-      }
-      $scope.messages.push(d);
-    }
+    $scope.messages = data.posts;
     if ($scope.flavor == "feed") {
       $rootScope.clearFeed(); // TODO: is this in the right spot?
     }

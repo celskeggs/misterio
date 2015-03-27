@@ -1,6 +1,6 @@
 <div class="media" ng-if="cid !== null">
   <a class="pull-left" href="./users/{{cid}}">
-    <img class="media-object user-avatar" src="{{'./img/' + user(cid).avatar}}" alt="{{user(cid).name}}">
+    <img class="media-object user-avatar" ng-src="{{'./img/' + user(cid).avatar}}" alt="{{user(cid).name}}">
   </a>
   <div class="media-body">
     <h1>{{user(cid).name}}</h1>
@@ -17,7 +17,7 @@
 
 <div class="media" ng-repeat="msg in messages">
   <a class="pull-left" href="./users/{{msg.from}}">
-    <img class="user-avatar" src="{{'./img/' + user(msg.from).avatar}}" alt="{{user(msg.from).name}}">
+    <img class="user-avatar" ng-src="{{'./img/' + user(msg.from).avatar}}" alt="{{user(msg.from).name}}">
   </a>
   <div class="media-body">
     <div class="panel panel-default">

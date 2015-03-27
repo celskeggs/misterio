@@ -123,8 +123,14 @@ class LogoffPage(webapp2.RequestHandler):
 def get_js_timestamp(x):
 	return int(1000 * time.mktime(x.timetuple()))
 class DynamicPage(VerifyingHandler):
-	def build_post_obj(self, post):
-		return {"id": post.key.id(), "data": post.msg, "from": post.cid.id(), "prev": post.response_to and post.response_to.id(), "date": get_js_timestamp(post.date), "to": post.target and post.target.id(), "expect": post.needs_reply}
+	def build_post_obj(self, post, include_prev=False):
+		out = {"id": post.key.id(), "data": post.msg, "from": post.cid.id(), "prev": post.response_to and post.response_to.id(), "date": get_js_timestamp(post.date), "to": post.target and post.target.id(), "expect": post.needs_reply}
+		if include_prev:
+			if post.response_to:
+				out["prevobj"] = self.build_post_obj(post.response_to.get(), include_prev=False)
+			else:
+				out["prevobj"] = None
+		return out
 	def post(self, dynamic_id):
 		character, session = self.get_and_verify_character()
 		if character == None:
@@ -221,7 +227,7 @@ class DynamicPage(VerifyingHandler):
 			posts, cursor, more = q.fetch_page(limit, start_cursor=(begin.reversed() if reverse else begin))
 			if reverse:
 				posts.reverse()
-			o = {"posts": [self.build_post_obj(post) for post in posts], "next": (cursor.reversed().urlsafe() if reverse else cursor.urlsafe()) if more else None}
+			o = {"posts": [self.build_post_obj(post, include_prev=True) for post in posts], "next": (cursor.reversed().urlsafe() if reverse else cursor.urlsafe()) if more else None}
 		else:
 			return self.abort(404)
 		self.response.headers["Content-Type"] = "application/json"
