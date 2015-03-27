@@ -159,6 +159,8 @@ class DynamicPage(VerifyingHandler):
 			return self.abort(404)
 		self.response.headers["Content-Type"] = "application/json"
 		self.response.write(json.dumps(o))
+	def get_inbox_query(self, character_key, session_key):
+		return Post.query(Post.target == character_key, Post.needs_reply == True, ancestor=session_key)
 	def get(self, dynamic_id):
 		# TODO: inbox, profile
 		character, session = self.get_and_verify_character()
@@ -179,7 +181,13 @@ class DynamicPage(VerifyingHandler):
 				return self.abort(404) # gone
 			o = self.build_post_obj(post)
 		elif dynamic_id == "inbox-count":
-			o = {"inbox": 0, "feed": 0} # TODO: do this properly
+			since = self.request.get("since", None)
+			if since == None or not since.isdigit():
+				return self.abort(400)
+			since = int(since)
+			q = self.get_inbox_query(character.key, session.key)
+			qf = Post.query(Post.date >= datetime.datetime.fromtimestamp(since / 1000.0), ancestor=session.key)
+			o = {"inbox": q.count(), "feed": qf.count()}
 		elif dynamic_id in ("feed", "inbox"):
 			limit = self.request.get("limit", "10")
 			if not limit.isdigit():
@@ -194,9 +202,7 @@ class DynamicPage(VerifyingHandler):
 			reverse = direction == "reverse"
 
 			if dynamic_id == "inbox":
-				q = Post.query(Post.target == character.key, Post.needs_reply == True, ancestor=session.key)
-				print "INBOX FETCH... COUNT", q.count()
-				q = Post.query(Post.target == character.key, Post.needs_reply == True, ancestor=session.key)
+				q = self.get_inbox_query(character.key, session.key)
 			else: # normal feed
 				q = Post.query(ancestor=session.key)
 			q = q.order((Post.date) if reverse else (-Post.date))
