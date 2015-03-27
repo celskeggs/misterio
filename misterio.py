@@ -193,6 +193,16 @@ class DynamicPage(VerifyingHandler):
 			q = self.get_inbox_query(character.key, session.key)
 			qf = Post.query(Post.date >= datetime.datetime.fromtimestamp(since / 1000.0), ancestor=session.key)
 			o = {"inbox": q.count(), "feed": qf.count()}
+		elif dynamic_id == "predefs":
+			sets = session.activated
+			glob_ms = Message.query(Message.charspec == False, Message.msid.IN(sets), ancestor=session.template).fetch()
+			char_ms = Message.query(Message.msid.IN(sets), ancestor=character.key).fetch()
+			messages = glob_ms + char_ms
+			messages.sort(key=lambda x: sets.index(x.msid))
+			msgout = []
+			for msg in messages:
+				msgout.append({"mid": msg.key.id(), "body": msg.body, "charspec": msg.charspec, "msid": msg.msid, "title": msg.title})
+			o = {"messages": msgout}
 		elif dynamic_id in ("feed", "inbox"):
 			limit = self.request.get("limit", "10")
 			if not limit.isdigit():

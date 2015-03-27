@@ -36,7 +36,7 @@ app.controller('Feed', ['$scope', '$location', '$routeParams', 'User', '$rootSco
     $scope.loading = false;
     $scope.messages = data.posts;
     if ($scope.flavor == "feed") {
-      $rootScope.clearFeed(); // TODO: is this in the right spot?
+      $rootScope.clearFeed();
     }
   };
 
@@ -81,6 +81,18 @@ app.controller('Feed', ['$scope', '$location', '$routeParams', 'User', '$rootSco
   };
 
   $scope.restart();
+}]);
+
+app.controller('Predefs', ['$scope', '$location', '$routeParams', 'User', '$rootScope',
+    function Predefs($scope, $location, $routeParams, User, $rootScope) {
+
+  $scope.messages = [];
+  $scope.loading = true;
+  User.messages.predefs().then(function(data) {
+    $scope.loading = false;
+    $scope.messages = data.messages;
+    handle_messages(data);
+  });
 }]);
 
 app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Storage',
