@@ -4,13 +4,29 @@
 // controllers
 var app = angular.module('misterio.controllers', []);
 
-app.controller('Feed', ['$scope', '$location', 'User', '$rootScope',
-    function Feed($scope, $location, User, $rootScope) {
+app.controller('Profile', ['$scope', '$location', '$routeParams', 'User',
+    function Profile($scope, $location, $routeParams, User) {
+  var cid = $scope.cid = $routeParams.cid;
+  $scope.user = function(id) {
+    return User.userLookup[id];
+  };
+}]);
+
+app.controller('Feed', ['$scope', '$location', '$routeParams', 'User', '$rootScope',
+    function Feed($scope, $location, $routeParams, User, $rootScope) {
+
   $scope.user = function(id) {
     return User.userLookup[id];
   };
 
-  $scope.is_inbox = ($location.path() == "/inbox");
+  $scope.url = $location.url();
+  $scope.flavor = ($location.path() == "/inbox") ? "inbox" : ($location.path() == "/") ? "feed" : "profile";
+
+  if ($scope.flavor == "profile") {
+    $scope.cid = $routeParams.cid;
+  } else {
+    $scope.cid = null;
+  }
 
   $scope.cursor = null;
   $scope.cursor_next = null;
@@ -29,7 +45,7 @@ app.controller('Feed', ['$scope', '$location', 'User', '$rootScope',
       }
       $scope.messages.push(d);
     }
-    if (!$scope.is_inbox) {
+    if ($scope.flavor == "feed") {
       $rootScope.clearFeed(); // TODO: is this in the right spot?
     }
   };
@@ -37,7 +53,7 @@ app.controller('Feed', ['$scope', '$location', 'User', '$rootScope',
   $scope.restart = function() {
     $scope.messages = [];
     $scope.loading = true;
-    User.messages.startFeed($scope.limit, false, $scope.is_inbox).then(function(data) {
+    User.messages.startFeed($scope.limit, false, $scope.flavor == "inbox", $scope.cid).then(function(data) {
       handle_messages(data);
       $scope.cursor = null;
       $scope.cursor_next = data.next;
@@ -55,7 +71,7 @@ app.controller('Feed', ['$scope', '$location', 'User', '$rootScope',
     if ($scope.canNext()) {
       $scope.messages = [];
       $scope.loading = true;
-      User.messages.continueFeed($scope.cursor_next, $scope.limit, false, $scope.is_inbox).then(function(data) {
+      User.messages.continueFeed($scope.cursor_next, $scope.limit, false, $scope.flavor == "inbox", $scope.cid).then(function(data) {
         handle_messages(data);
         $scope.cursor = $scope.cursor_next;
         $scope.cursor_next = data.next;
@@ -66,7 +82,7 @@ app.controller('Feed', ['$scope', '$location', 'User', '$rootScope',
     if ($scope.canPrev()) {
       $scope.messages = [];
       $scope.loading = true;
-      User.messages.continueFeed($scope.cursor, $scope.limit, true, $scope.is_inbox).then(function(data) {
+      User.messages.continueFeed($scope.cursor, $scope.limit, true, $scope.flavor == "inbox", $scope.cid).then(function(data) {
         handle_messages(data);
         $scope.cursor_next = $scope.cursor;
         $scope.cursor = data.next;
@@ -180,73 +196,6 @@ app.controller('Users', ['$scope', '$location', 'User',
   $scope.toggleCredits = function() {
     $scope.showCredits = !$scope.showCredits;
   };
-}]);
-
-app.controller('Profile', ['$scope', '$location', '$routeParams', 'User',
-    function Profile($scope, $location, $routeParams, User) {
-  var cid = $scope.cid = $routeParams.cid;
-  $scope.user = function(id) {
-    return User.userLookup[id];
-  };
-
-  $scope.total = 0;
-  $scope.offset = 0;
-  $scope.limit = 10;
-  $scope.get = function() {
-    $scope.messages = [];
-    User.messages.profile(cid, $scope.offset, $scope.limit)
-      .then(function(data) {
-      $scope.messages = [];
-      for (var i=0; i<data.data.length; i++) {
-        var d = data.data[i];
-        if (d.prev && !d.prevobj) {
-          User.messages.get(d.prev).then(function (po) {
-            this.prevobj = po;
-          }.bind(d));
-        }
-        $scope.messages.push(d);
-      }
-      $scope.total = data.total;
-    });
-  };
-
-  $scope.showing = -1;
-  $scope.show = function(id) {
-    if ($scope.showing == id) {
-      $scope.showing = -1;
-    } else {
-      $scope.showing = id;
-    }
-  };
-  $scope.isshowing = function(id) {
-    return $scope.showing == id;
-  };
-
-  $scope.canNext = function() {
-    return $scope.offset + $scope.limit < $scope.total;
-  };
-  $scope.canPrev = function() {
-    return $scope.offset !== 0;
-  };
-
-  $scope.next = function() {
-    if ($scope.canNext()) {
-      $scope.offset += $scope.limit;
-      $scope.get();
-    }
-  };
-  $scope.prev = function() {
-    if ($scope.canPrev()) {
-      if ($scope.offset < $scope.limit) {
-        $scope.offset = 0;
-      } else {
-        $scope.offset -= $scope.limit;
-      }
-      $scope.get();
-    }
-  };
-
-  $scope.get();
 }]);
 
 app.controller('Navbar', ['$scope', 'User', function Navbar($scope, User) {

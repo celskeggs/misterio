@@ -107,20 +107,22 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q',
           }
         }));
       },
-      startFeed: function(limit, rev, is_inbox) {
+      startFeed: function(limit, rev, is_inbox, cid) {
         return use($http.get(is_inbox ? '/dynamic/inbox' : '/dynamic/feed', {
           params: {
             limit: limit,
-            reverse: rev ? "reverse" : "forward"
+            direction: rev ? "reverse" : "forward",
+            cid: cid
           }
         }));
       },
-      continueFeed: function(cursor, limit, rev, is_inbox) {
+      continueFeed: function(cursor, limit, rev, is_inbox, cid) {
         return use($http.get(is_inbox ? '/dynamic/inbox' : '/dynamic/feed', {
           params: {
             limit: limit,
             begin: cursor,
-            reverse: rev ? "reverse" : "forward"
+            direction: rev ? "reverse" : "forward",
+            cid: cid
           }
         }));
       },
@@ -128,15 +130,6 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q',
         return use($http.get('/dynamic/inbox-count', {
           params: {
             since: since
-          }
-        }));
-      },
-      profile: function(cid, offset, limit) {
-        return use($http.get('/dynamic/profile', {
-          params: {
-            cid: cid,
-            offset: offset,
-            limit: limit
           }
         }));
       },

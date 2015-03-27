@@ -44,7 +44,6 @@ app.directive('focusMe', function() {
 app.directive('inboxCounter', function(User) {
   return function(scope, element, attrs) {
     function updateCount(event, data) {
-      console.log("GOT NEW DATA 1:", data)
       element.text(data.inbox ? data.inbox : "");
     }
     scope.$on("messageCountUpdate", updateCount);
@@ -54,7 +53,6 @@ app.directive('inboxCounter', function(User) {
 app.directive('feedCounter', function(User) {
   return function(scope, element, attrs) {
     function updateCount(event, data) {
-      console.log("GOT NEW DATA 2:", data)
       element.text(data.feed ? data.feed : "");
     }
     scope.$on("messageCountUpdate", updateCount);

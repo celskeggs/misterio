@@ -21,7 +21,7 @@ app.config(['$routeProvider', function($routeProvider) {
   r('/compose', 'compose', 'Compose');
   r('/compose/:id', 'compose', 'Compose');
   r('/users', 'users', 'Users');
-  r('/users/:cid', 'feed', 'Profile');
+  r('/users/:cid', 'feed', 'Feed');
 
   $routeProvider.otherwise({
     templateUrl: 'partials/not-found.html'
@@ -54,7 +54,7 @@ app.run(function($rootScope, $interval, $location, User) {
     }
   });
   updateCount();
-  var stopCount = $interval(updateCount, 10000);
+  var stopCount = $interval(updateCount, 30000); // TODO: temporarily increased value - change back
   // stopCount not currently used.
 
   $rootScope.page = {

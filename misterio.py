@@ -162,7 +162,6 @@ class DynamicPage(VerifyingHandler):
 	def get_inbox_query(self, character_key, session_key):
 		return Post.query(Post.target == character_key, Post.needs_reply == True, ancestor=session_key)
 	def get(self, dynamic_id):
-		# TODO: inbox, profile
 		character, session = self.get_and_verify_character()
 		if character == None:
 			return
@@ -196,17 +195,32 @@ class DynamicPage(VerifyingHandler):
 
 			begin = self.request.get("begin", None)
 			if begin != None:
-				begin = Cursor(urlsafe=begin)
+				begin = ndb.Cursor(urlsafe=begin)
+
+			cid = self.request.get("cid", None)
+			# for quota reasons, we are not verifying the character id
+			if cid != None:
+				if not cid.isdigit():
+					return self.abort(400)
+				cid = ndb.Key(Character, int(cid), parent=session.template)
 
 			direction = self.request.get("direction", "forward")
 			reverse = direction == "reverse"
 
 			if dynamic_id == "inbox":
+				if cid != None:
+					return self.abort(400)
 				q = self.get_inbox_query(character.key, session.key)
+				q = q.order((Post.date) if reverse else (-Post.date))
+			elif cid != None: # profile feed
+				q = Post.query(ndb.OR(Post.cid == cid, Post.target == cid), ancestor=session.key)
+				q = q.order((Post.date) if reverse else (-Post.date), Post.key)
 			else: # normal feed
 				q = Post.query(ancestor=session.key)
-			q = q.order((Post.date) if reverse else (-Post.date))
+				q = q.order((Post.date) if reverse else (-Post.date))
 			posts, cursor, more = q.fetch_page(limit, start_cursor=(begin.reversed() if reverse else begin))
+			if reverse:
+				posts.reverse()
 			o = {"posts": [self.build_post_obj(post) for post in posts], "next": (cursor.reversed().urlsafe() if reverse else cursor.urlsafe()) if more else None}
 		else:
 			return self.abort(404)
