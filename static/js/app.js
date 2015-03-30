@@ -37,14 +37,27 @@ app.run(function($rootScope, $interval, $location, User) {
   $rootScope.city = "Toluca";
 
   $rootScope.messagesSince = Date.now() - 2000;
+  $rootScope.olderMessages = 0;
 
   function updateCount() {
+    var startAt = Date.now();
     User.messages.inboxCount($rootScope.messagesSince).then(function (data) {
+      if (data.feed !== 0) {
+        data.feed += $rootScope.olderMessages;
+        $rootScope.olderMessages = data.feed;
+        $rootScope.messagesSince = data.next_since !== null ? data.next_since : startAt;
+      } else { // if feed has nothing new, keep the old since-timestamp so that the server doesn't have to do a recalculation
+        data.feed += $rootScope.olderMessages;
+        if (data.next_since !== null) {
+          $rootScope.messagesSince = data.next_since;
+        }
+      }
       $rootScope.$broadcast("messageCountUpdate", data);
     });
   }
   $rootScope.clearFeed = function() {
-    $rootScope.messagesSince = Date.now() - 2000; // keep five seconds of messages
+    $rootScope.messagesSince = Date.now() - 2000; // keep two seconds of messages
+    $rootScope.olderMessages = 0;
     updateCount();
   };
   $rootScope.$on('$routeChangeSuccess', function(event, next, current) {
@@ -55,7 +68,7 @@ app.run(function($rootScope, $interval, $location, User) {
     }
   });
   updateCount();
-  var stopCount = $interval(updateCount, 10000);
+  var stopCount = $interval(updateCount, 20000);
   // stopCount not currently used.
 
   $rootScope.page = {

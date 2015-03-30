@@ -42,3 +42,10 @@ indexes:
   - name: target
   - name: date
     direction: desc
+
+- kind: Post
+  ancestor: yes
+  properties:
+  - name: needs_reply
+  - name: target
+  - name: date

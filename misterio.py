@@ -1,5 +1,5 @@
-import webapp2, os, cgi, datetime, sys, time, logging, json, urllib, jinja2
-from google.appengine.api import users
+import webapp2, os, cgi, datetime, sys, time, logging, json, urllib, jinja2, random
+from google.appengine.api import users, memcache
 from google.appengine.ext import ndb
 
 with open("avatar-list.txt", "r") as f:
@@ -14,6 +14,48 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     autoescape=True)
 JINJA_ENVIRONMENT.globals["len"] = len
 
+def notify_update(key, realm):
+	return memcache.incr("%s/%d" % (realm, key.id()), initial_value=random.randint(0, 100000000))
+def get_update_value(key, realm):
+	out = memcache.get("%s/%d" % (realm, key.id()))
+	if out != None:
+		return out
+	out = notify_update(key, realm)
+	if out != None:
+		return out
+	logging.error("could not make a %s!" % realm)
+	return -1
+def notify_update_template(template_key):
+	return notify_update(template_key, "TUN")
+def get_template_update_value(template_key):
+	return get_update_value(template_key, "TUN")
+def notify_update_posts(session_key, update_time): # time is a JS timestamp
+	# last post update time
+	memcache.set("LPUT/%d" % session_key.id(), update_time)
+	return notify_update(session_key, "PUN")
+def post_updated_since(session_key, since): # since is a JS timestamp
+	tm = memcache.get("LPUT/%d" % session_key.id())
+	return tm == None or tm >= since, tm
+def get_post_update_value(session_key):
+	return get_update_value(session_key, "PUN")
+def notify_update_session(session_key):
+	return notify_update(session_key, "SUN")
+def get_session_update_value(session_key):
+	return get_update_value(session_key, "SUN")
+def get_session_or_template_update_value(session):
+	return "%d&%d" % (get_session_update_value(session.key), get_template_update_value(session.template))
+def unwrap_for_update(data, pun_actual):
+	if data == None:
+		return None
+	pun_value, data = data.split("$", 2)
+	if pun_value == str(pun_actual):
+		return data
+	else:
+		return None
+def wrap_for_update(data, pun_actual):
+	if data == None:
+		return None
+	return "%s$%s" % (pun_actual, data)
 class Template(ndb.Model):
 	name = ndb.StringProperty(required=True)
 	message_sets = ndb.StringProperty(repeated=True)
@@ -42,8 +84,16 @@ class Post(ndb.Model):
 	needs_reply = ndb.BooleanProperty(required=False)
 	response_to = ndb.KeyProperty(required=False, kind="Post")
 
+LOAD_TESTING_TOKEN = None
+
 class VerifyingHandler(webapp2.RequestHandler):
 	def get_and_verify_character(self, char=None): # returns (character, session)
+		if LOAD_TESTING_TOKEN != None and self.request.headers.get("X-Bypass-Token", None) == LOAD_TESTING_TOKEN:
+			session = Session.get_by_id(5649391675244544)
+			if session == None: return None, None
+			character = Character.get_by_id(5741031244955648, parent=session.template)
+			if character == None: return None, None
+			return character, session
 		email = users.get_current_user().email()
 		if char == None:
 			char = self.request.cookies.get("character", None)
@@ -161,9 +211,15 @@ class DynamicPage(VerifyingHandler):
 				if prev.needs_reply and prev.target == character.key:
 					prev.needs_reply = False
 					prev.put()
+					# invalidation for inbox check below
+					memcache.delete("IBQ/%d/%d" % (character.key.id(), session.key.id()))
 				prev = prev.key
 			post = Post(cid=character.key, target=to, msg=data, needs_reply=expect or None, response_to=prev, parent=session.key)
 			pkey = post.put()
+			notify_update_posts(session.key, get_js_timestamp(post.date))
+			if to != None:
+				# invalidation for inbox check below
+				memcache.delete("IBQ/%d/%d" % (to.id(), session.key.id()))
 			o = {"id": pkey.id(), "date": get_js_timestamp(post.date)}
 		else:
 			return self.abort(404)
@@ -176,10 +232,20 @@ class DynamicPage(VerifyingHandler):
 		if character == None:
 			return
 		if dynamic_id == "users":
-			chars = Character.query(ancestor=session.template)
-			chard = []
-			for char in chars:
-				chard.append({"cid": char.key.id(), "avatar": char.avatar, "name": char.name, "session": session.name})
+			tun_value = get_template_update_value(session.template)
+
+			mcid = "USR/%d" % session.template.id()
+			chardo = memcache.get(mcid)
+			chard = unwrap_for_update(chardo, tun_value)
+			if chard == None:
+				logging.debug("missed users cache (%s)" % chardo)
+				chars = Character.query(ancestor=session.template)
+				chard = []
+				for char in chars:
+					chard.append({"cid": char.key.id(), "avatar": char.avatar, "name": char.name, "session": session.name})
+				memcache.set(mcid, wrap_for_update(json.dumps(chard), tun_value))
+			else:
+				chard = json.loads(chard)
 			o = {"me": character.key.id(), "session": session.name, "users": chard}
 		elif dynamic_id == "get-post":
 			mid = self.request.get("id", None)
@@ -190,63 +256,108 @@ class DynamicPage(VerifyingHandler):
 				return self.abort(404) # gone
 			o = self.build_post_obj(post)
 		elif dynamic_id == "inbox-count":
-			since = self.request.get("since", None)
-			if since == None or not since.isdigit():
+			rsince = self.request.get("since", None)
+			if rsince == None or not rsince.isdigit():
 				return self.abort(400)
-			since = int(since)
-			q = self.get_inbox_query(character.key, session.key)
-			qf = Post.query(Post.date >= datetime.datetime.fromtimestamp(since / 1000.0), ancestor=session.key)
-			o = {"inbox": q.count(), "feed": qf.count()}
+			since = int(int(rsince) / 1000.0)
+
+			pun_value = get_post_update_value(session.key)
+			recent_update, recent_update_time = post_updated_since(session.key, int(rsince))
+
+			# invalidated above in special cases
+			mcid = "IBQ/%d/%d" % (character.key.id(), session.key.id())
+			qc = memcache.get(mcid)
+			if qc == None:
+				logging.debug("missed qc cache")
+				qc = self.get_inbox_query(character.key, session.key).count()
+				memcache.set(mcid, str(qc))
+			else:
+				qc = int(qc)
+
+			if recent_update:
+				mcid = "FDQ/%d/%d" % (session.key.id(), since)
+				qpo = memcache.get(mcid)
+				qp = unwrap_for_update(memcache.get(mcid), pun_value)
+				if qp == None:
+					logging.debug("missed qp cache (%s)" % qpo)
+					qp = Post.query(Post.date >= datetime.datetime.fromtimestamp(since), ancestor=session.key).count()
+					memcache.set(mcid, wrap_for_update(qp, pun_value))
+				else:
+					qp = int(qp)
+			else:
+				qp = 0
+
+			o = {"inbox": qc, "feed": qp, "next_since": recent_update_time + 1 if recent_update_time != None else None}
 		elif dynamic_id == "predefs":
 			sets = session.activated
 			msgout = []
+
 			if sets: # if no sets, no messages!
-				glob_ms = Message.query(Message.charspec == False, Message.msid.IN(sets), ancestor=session.template).fetch()
-				char_ms = Message.query(Message.msid.IN(sets), ancestor=character.key).fetch()
-				messages = glob_ms + char_ms
-				messages.sort(key=lambda x: sets.index(x.msid))
-				for msg in messages:
-					msgout.append({"mid": msg.key.id(), "body": msg.body, "charspec": msg.charspec, "msid": msg.msid, "title": msg.title})
+				stun_value = get_session_or_template_update_value(session)
+
+				mcid = "PDM/%d/%d" % (session.key.id(), character.key.id())
+				msgo = memcache.get(mcid)
+				messages = unwrap_for_update(msgo, stun_value)
+				if messages == None:
+					logging.debug("missed predefs cache (%s)" % msgo)
+					glob_ms = Message.query(Message.charspec == False, Message.msid.IN(sets), ancestor=session.template).fetch()
+					char_ms = Message.query(Message.msid.IN(sets), ancestor=character.key).fetch()
+					messages = glob_ms + char_ms
+					messages.sort(key=lambda x: sets.index(x.msid))
+					for msg in messages:
+						msgout.append({"mid": msg.key.id(), "body": msg.body, "charspec": msg.charspec, "msid": msg.msid, "title": msg.title})
+					memcache.set(mcid, wrap_for_update(json.dumps(msgout), stun_value))
+				else:
+					msgout = json.loads(messages)
 			o = {"messages": msgout}
 		elif dynamic_id in ("feed", "inbox"):
-			limit = self.request.get("limit", "10")
-			if not limit.isdigit():
-				return self.abort(400)
-			limit = max(1, min(int(limit), 20))
+			limit = 10
 
 			begin = self.request.get("begin", None)
-			if begin != None:
-				begin = ndb.Cursor(urlsafe=begin)
-
 			cid = self.request.get("cid", None)
-			# for quota reasons, we are not verifying the character id
-			if cid != None:
-				if not cid.isdigit():
-					return self.abort(400)
-				cid = ndb.Key(Character, int(cid), parent=session.template)
-
 			direction = self.request.get("direction", "forward")
-			reverse = direction == "reverse"
 
-			if dynamic_id == "inbox":
+			pun_value = get_post_update_value(session.key)
+
+			mcid = "%s/%d/%s/%s/%s" % ("FED" if dynamic_id == "feed" else "IBX", session.key.id(), begin, cid, direction)
+			ptso = memcache.get(mcid)
+			pts = unwrap_for_update(ptso, pun_value)
+			if pts == None:
+				logging.debug("missed pts cache (%s)" % ptso)
+
+				if begin != None:
+					begin = ndb.Cursor(urlsafe=begin)
+				# for quota reasons, we are not verifying the character id
 				if cid != None:
-					return self.abort(400)
-				q = self.get_inbox_query(character.key, session.key)
-				q = q.order((Post.date) if reverse else (-Post.date))
-			elif cid != None: # profile feed
-				q = Post.query(ndb.OR(Post.cid == cid, Post.target == cid), ancestor=session.key)
-				q = q.order((Post.date) if reverse else (-Post.date), Post.key)
-			else: # normal feed
-				q = Post.query(ancestor=session.key)
-				q = q.order((Post.date) if reverse else (-Post.date))
-			posts, cursor, more = q.fetch_page(limit, start_cursor=(begin.reversed() if reverse else begin))
-			if reverse:
-				posts.reverse()
-			o = {"posts": [self.build_post_obj(post, include_prev=True) for post in posts], "next": (cursor.reversed().urlsafe() if reverse else cursor.urlsafe()) if more else None}
+					if not cid.isdigit():
+						return self.abort(400)
+					cid = ndb.Key(Character, int(cid), parent=session.template)
+
+				reverse = direction == "reverse"
+
+				if dynamic_id == "inbox":
+					if cid != None:
+						return self.abort(400)
+					q = self.get_inbox_query(character.key, session.key)
+					q = q.order((Post.date) if reverse else (-Post.date))
+				elif cid != None: # profile feed
+					q = Post.query(ndb.OR(Post.cid == cid, Post.target == cid), ancestor=session.key)
+					q = q.order((Post.date) if reverse else (-Post.date), Post.key)
+				else: # normal feed
+					q = Post.query(ancestor=session.key)
+					q = q.order((Post.date) if reverse else (-Post.date))
+				posts, cursor, more = q.fetch_page(limit, start_cursor=(begin.reversed() if reverse and begin != None else begin))
+				if reverse:
+					posts.reverse()
+				o = {"posts": [self.build_post_obj(post, include_prev=True) for post in posts], "next": (cursor.reversed().urlsafe() if reverse else cursor.urlsafe()) if more else None}
+
+				memcache.set(mcid, wrap_for_update(json.dumps(o), pun_value))
+			else:
+				o = json.loads(pts)
 		else:
 			return self.abort(404)
 		self.response.headers["Content-Type"] = "application/json"
-		self.response.write(json.dumps(o))
+		self.response.write(json.dumps(o) if type(o) != str else o)
 
 application = webapp2.WSGIApplication([
 	('/logoff', LogoffPage),
@@ -312,6 +423,7 @@ class AdminPage(webapp2.RequestHandler):
 				templ.name = name
 				templ.put()
 				self.redirect("/administration/template?key=%s" % key.urlsafe())
+			# Template notification not included because NO ONE CARES ABOUT THE NAME.
 		elif rel == "duplicate_template":
 			succ, name, key = self.get_reqs_key("name", "Template")
 			if succ:
@@ -334,6 +446,7 @@ class AdminPage(webapp2.RequestHandler):
 				templ = key.get()
 				templ.message_sets.append(name)
 				templ.put()
+				notify_update_template(key)
 				self.redirect("/administration/template?key=%s#message-sets" % key.urlsafe())
 		elif rel == "delete_message_set":
 			succ, name, key = self.get_reqs_key("name", "Template")
@@ -342,6 +455,7 @@ class AdminPage(webapp2.RequestHandler):
 				if name in templ.message_sets:
 					templ.message_sets.remove(name)
 					templ.put()
+					notify_update_template(key)
 					self.redirect("/administration/template?key=%s#message-sets" % key.urlsafe())
 				else:
 					self.display_error("The specified message set was not found.")
@@ -355,6 +469,7 @@ class AdminPage(webapp2.RequestHandler):
 					return self.display_error("Specified message set does not exist.")
 				msg = Message(parent=key, msid=message_set, title=title, body=body)
 				msg.put()
+				notify_update_template(key)
 				self.redirect("/administration/template?key=%s#global-messages" % key.urlsafe())
 		elif rel == "update_global_message":
 			mode = self.request.get("mode", "")
@@ -377,11 +492,13 @@ class AdminPage(webapp2.RequestHandler):
 					msg.title = title
 					msg.body = body
 					msg.put()
+					notify_update_template(key.parent)
 					self.redirect("/administration/template?key=%s#global-messages" % key.parent().urlsafe())
 		elif rel == "new_character":
 			succ, name, avatar, key = self.get_reqs_key("name", "avatar", "Template")
 			if succ:
 				nkey = Character(name=name, avatar=avatar, parent=key).put()
+				notify_update_template(key)
 				self.redirect("/administration/character?key=%s" % nkey.urlsafe())
 		elif rel == "add_character_message":
 			succ, message_set, title, body, key = self.get_reqs_key("message-set", "title", "body", "Template/Character")
@@ -396,6 +513,7 @@ class AdminPage(webapp2.RequestHandler):
 					return self.display_error("Specified message set does not exist.")
 				msg = Message(parent=key, msid=message_set, title=title, body=body)
 				msg.put()
+				notify_update_template(key.parent)
 				self.redirect("/administration/character?key=%s#global-messages" % key.urlsafe())
 		elif rel == "update_character_message":
 			mode = self.request.get("mode", "")
@@ -418,6 +536,7 @@ class AdminPage(webapp2.RequestHandler):
 					msg.title = title
 					msg.body = body
 					msg.put()
+					notify_update_template(key.parent.parent)
 					self.redirect("/administration/character?key=%s#global-messages" % key.parent().urlsafe())
 		elif rel == "set_character_name":
 			succ, name, key = self.get_reqs_key("name", "Template/Character")
@@ -425,6 +544,7 @@ class AdminPage(webapp2.RequestHandler):
 				char = key.get()
 				char.name = name
 				char.put()
+				notify_update_template(key.parent)
 				self.redirect("/administration/character?key=%s#properties" % key.urlsafe())
 		elif rel == "set_character_avatar":
 			succ, avatar, key = self.get_reqs_key("avatar", "Template/Character")
@@ -432,6 +552,7 @@ class AdminPage(webapp2.RequestHandler):
 				char = key.get()
 				char.avatar = avatar
 				char.put()
+				notify_update_template(key.parent)
 				self.redirect("/administration/character?key=%s#properties" % key.urlsafe())
 		elif rel == "duplicate_character":
 			succ, name, key = self.get_reqs_key("name", "Template/Character")
@@ -441,6 +562,7 @@ class AdminPage(webapp2.RequestHandler):
 				newkey = Character(name=name, avatar=old.avatar, parent=key.parent()).put()
 				for oldm in oldmsgs:
 					Message(msid=oldm.msid, title=oldm.title, body=oldm.body, parent=newkey).put()
+				notify_update_template(key.parent)
 				self.redirect("/administration/character?key=%s#properties" % newkey.urlsafe())
 		elif rel == "delete_character":
 			succ, key = self.get_reqs_key("Template/Character")
@@ -449,6 +571,7 @@ class AdminPage(webapp2.RequestHandler):
 				for mkey in oldkeys:
 					mkey.delete()
 				key.delete()
+				notify_update_template(key.parent)
 				self.redirect("/administration/template?key=%s#characters" % key.parent().urlsafe())
 		elif rel == "delete_template":
 			succ, key = self.get_reqs_key("Template")
@@ -462,6 +585,7 @@ class AdminPage(webapp2.RequestHandler):
 				for ckey in oldchars:
 					ckey.delete()
 				key.delete()
+				notify_update_template(key)
 				self.redirect("/administration")
 		# Session-related calls
 		elif rel == "new_session":
@@ -478,6 +602,7 @@ class AdminPage(webapp2.RequestHandler):
 				session = key.get()
 				session.name = name
 				session.put()
+				notify_update_session(key)
 				self.redirect("/administration/session?key=%s" % key.urlsafe())
 		elif rel == "toggle_message_set":
 			succ, name, key = self.get_reqs_key("name", "Session")
@@ -488,6 +613,7 @@ class AdminPage(webapp2.RequestHandler):
 				else:
 					session.activated.append(name)
 				session.put()
+				notify_update_session(key)
 				self.redirect("/administration/session?key=%s#message-sets" % key.urlsafe())
 		elif rel == "assign_character":
 			succ, key = self.get_reqs_key("Session")
@@ -504,6 +630,7 @@ class AdminPage(webapp2.RequestHandler):
 				if email != None and email != "":
 					session.assignments.append(Assignment(cid=charid, player_email=email))
 				session.put()
+				notify_update_session(key)
 				self.redirect("/administration/session?key=%s#characters" % key.urlsafe())
 		else:
 			self.response.headers["Content-Type"] = "text/plain"
