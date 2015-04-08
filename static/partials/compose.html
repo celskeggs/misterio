@@ -8,8 +8,8 @@
       <div markdown-preview="prev.data">{{block}}</div>
     </div>
   </div>
-  <p ng-hide="prev || prev === false">Loading...</p>
-  <p ng-show="prev === false">Unable to display previous post. <a ng-click="getPrev()">Retry</a>.</p>
+  <p ng-hide="prev || prev === false">Cargando...</p>
+  <p ng-show="prev === false">No puede mostrar el correo previoso. <a ng-click="getPrev()">Reintentar</a>.</p>
 </div>
 
 <h1>{{ternary(message.prev, 'Responder', 'Redactar')}}</h1>
@@ -23,7 +23,7 @@
           <div class="avatar-select-elem" ng-class="{'avatar-selected-elem': selected(null)}" ng-click="select(null)">
             <img src="./img/broadcast.png" />
             <div>
-              <div>For everyone</div>
+              <div>Todos</div>
             </div>
           </div>
         </li>
@@ -42,9 +42,7 @@
     <label class="col-sm-2 control-label" for="input-to">Modo</label>
     <div class="col-sm-10">
       <div class="checkbox">
-        <label>
-          <input type="checkbox" ng-disabled="message.to === null" ng-model="message.expect"> This message is a question, or otherwise expects a response. (This will make the message show up in the target's inbox. In either case, it will still show up in everyone's feed.)
-        </label>
+        <input type="checkbox" ng-disabled="message.to === null" ng-model="message.expect"> This message is a question, or otherwise expects a response.<br>(This will make the message show up in the target's inbox. In either case, it will still show up in everyone's feed.) <!-- This is in English because it's important to get right. -->
       </div>
     </div>
   </div>
