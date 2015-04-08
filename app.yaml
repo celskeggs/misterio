@@ -51,7 +51,7 @@ handlers:
 - url: /administration(/.*)?
   script: misterio.administration
   secure: always
-  login: admin
+  login: required
 - url: /.*
   script: misterio.application
   secure: always

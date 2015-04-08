@@ -14,6 +14,12 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     autoescape=True)
 JINJA_ENVIRONMENT.globals["len"] = len
 
+def is_user_admin():
+	user = users.get_current_user()
+	if not user:
+		return False
+	return users.is_current_user_admin() or Administrator.get_by_id(user.email()) != None
+
 def notify_update(key, realm):
 	return memcache.incr("%s/%d" % (realm, key.id()), initial_value=random.randint(0, 100000000))
 def get_update_value(key, realm):
@@ -56,6 +62,11 @@ def wrap_for_update(data, pun_actual):
 	if data == None:
 		return None
 	return "%s$%s" % (pun_actual, data)
+
+class Administrator(ndb.Model): # key is email
+	name = ndb.StringProperty(required=True, indexed=False)
+	added = ndb.DateTimeProperty(required=True, auto_now_add=True)
+
 class Template(ndb.Model):
 	name = ndb.StringProperty(required=True)
 	message_sets = ndb.StringProperty(repeated=True)
@@ -115,6 +126,14 @@ class VerifyingHandler(webapp2.RequestHandler):
 			self.response.delete_cookie("character")
 			self.redirect("/select")
 			return None, None
+		found = False
+		for assignment in session.assignments:
+			if assignment.cid.id() == cid and assignment.player_email == email:
+				found = True
+		if not found:
+			self.response.delete_cookie("character")
+			self.redirect("/select")
+			return None, None
 		character = Character.get_by_id(cid, parent=session.template)
 		if character == None:
 			self.response.delete_cookie("character")
@@ -162,7 +181,7 @@ class SelectPage(VerifyingHandler):
 		charmap = dict((char.key, char) for char in ndb.get_multi(charids))
 		characters = [(charmap[key], session) for key, session in characters]
 
-		self.response.write(jt.render({"username": users.get_current_user().nickname(), "characters": characters, "admin": users.is_current_user_admin()}))
+		self.response.write(jt.render({"username": users.get_current_user().nickname(), "characters": characters, "admin": is_user_admin()}))
 class LogoffPage(webapp2.RequestHandler):
 	def get(self):
 		self.response.delete_cookie("character")
@@ -386,6 +405,9 @@ class AdminPage(webapp2.RequestHandler):
 			self.display_error("Invalid key.")
 			return None
 		return unwrapped
+	def check_access(self):
+		if not is_user_admin():
+			self.abort(403)
 	def get_reqs(self, *requests):
 		return self.get_reqs_i(requests)
 	def get_reqs_key(self, *requests):
@@ -410,8 +432,29 @@ class AdminPage(webapp2.RequestHandler):
 		jt = JINJA_ENVIRONMENT.get_template('static_admin/error.html')
 		self.response.write(jt.render({"error": error}))
 	def post(self, rel=""):
+		self.check_access()
+		# Global calls
+		if rel == "delete_administrator":
+			succ, key = self.get_reqs_key("Administrator")
+			if succ:
+				if key.id() == users.get_current_user().email():
+					self.display_error("You cannot remove yourself as an administrator! Sign into a different administrator account to do so.")
+				elif key.get() != None:
+					key.delete()
+					self.redirect("/administration/#administrators")
+				else:
+					self.display_error("The specified message set was not found.")
+		elif rel == "add_administrator":
+			succ, email, name = self.get_reqs("email", "name")
+			if succ:
+				key = ndb.Key(Administrator, email)
+				if key.get() != None:
+					self.display_error("An administrator already exists with that email!")
+				else:
+					Administrator(key=key, name=name).put()
+					self.redirect("/administration/#administrators")
 		# Template-related calls
-		if rel == "new_template":
+		elif rel == "new_template":
 			succ, name = self.get_reqs("name")
 			if succ:
 				key = Template(name=name).put()
@@ -633,17 +676,18 @@ class AdminPage(webapp2.RequestHandler):
 				notify_update_session(key)
 				self.redirect("/administration/session?key=%s#characters" % key.urlsafe())
 		else:
-			self.response.headers["Content-Type"] = "text/plain"
-			self.response.write("ADMIN: %s: %s" % (rel, self.request.params))
+			self.abort(404)
 	def get(self, rel=""):
+		self.check_access()
 		if rel == "":
 			self.response.headers["Content-Type"] = "text/html"
 			jt = JINJA_ENVIRONMENT.get_template('static_admin/root.html')
 
 			templates = Template.query().fetch()
 			sessions = Session.query().fetch()
+			administrators = Administrator.query().fetch()
 
-			self.response.write(jt.render({"templates": templates, "sessions": sessions}))
+			self.response.write(jt.render({"templates": templates, "sessions": sessions, "administrators": administrators}))
 		elif rel == "template":
 			self.response.headers["Content-Type"] = "text/html"
 			jt = JINJA_ENVIRONMENT.get_template('static_admin/template.html')
@@ -734,8 +778,7 @@ class AdminPage(webapp2.RequestHandler):
 				else:
 					self.response.write(jt.render({"target": template, "warning": "You are attempting to delete a template and ALL ATTACHED CHARACTERS and ALL ATTACHED MESSAGES!", "type": "template", "keep": "/administration/template?key=%s" % key.urlsafe(), "destroy": "/administration/delete_template"}))
 		else:
-			self.response.headers["Content-Type"] = "text/plain"
-			self.response.write("ADMIN: %s" % rel)
+			self.abort(404)
 
 administration = webapp2.WSGIApplication([
 	('/administration', AdminPage),

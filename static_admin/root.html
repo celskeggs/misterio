@@ -84,6 +84,52 @@
           <div class="alert alert-info" style="margin-bottom: 0px;">Click on a template (above) to be able to create a new session based on that template. All sessions must be based on an existing template.</div>
         </div>
       </div>
+
+      <a name="administrators"></a>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Administrators</h3>
+        </div>
+        <div class="panel-body">
+          <div class="alert alert-info">An <strong>administrator</strong> has full access to this backend. Do not give out access to anyone who you do not have full trust in. Users who have Google AppEngine administrator access are not necessarily included on this list but also have full access to this backend.</div>
+          {% if administrators %}
+            <table class="table">
+			  <thead>
+			    <tr><th>Email</th><th>Name</th><th>Date Added</th><th>Actions</th></tr>
+		      </thead>
+			  <tbody>
+                {% for administrator in administrators %}
+                  <form action="/administration/delete_administrator" method="post">
+                    <input type="hidden" name="key" value="{{ administrator.key.urlsafe() }}" />
+				    <tr><td>{{ administrator.key.id() }}</td><td>{{ administrator.name }}</td><td>{{ administrator.added }}</td><td><button class="btn btn-danger" type="submit">Remove</button></td></tr>
+                  </form>
+                {% endfor %}
+		      </tbody>
+            </table>
+          {% else %}
+            <div class="alert alert-warning">No non-GAE administrators currently exist.</div>
+          {% endif %}
+          <form class="form-horizontal" action="/administration/add_administrator" method="post">
+            <div class="form-group">
+              <label for="email" class="col-sm-2 control-label">Email</label>
+              <div class="col-sm-10">
+                <input type="email" id="email" name="email" class="form-control" placeholder="Administrator email...">
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="name" class="col-sm-2 control-label">Name</label>
+              <div class="col-sm-10">
+                <input type="text" id="name" name="name" class="form-control" placeholder="Administrator name...">
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="col-sm-10 col-sm-offset-2">
+                <button class="btn btn-primary" type="submit">Add Administrator</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
 
