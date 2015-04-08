@@ -306,7 +306,7 @@ class DynamicPage(VerifyingHandler):
 			else:
 				qp = 0
 
-			o = {"inbox": qc, "feed": qp, "next_since": recent_update_time if recent_update_time != None else None}
+			o = {"inbox": qc, "feed": qp, "next_since": recent_update_time + 1 if recent_update_time != None else None}
 		elif dynamic_id == "predefs":
 			sets = session.activated
 			msgout = []
