@@ -492,7 +492,7 @@ class AdminPage(webapp2.RequestHandler):
 					msg.title = title
 					msg.body = body
 					msg.put()
-					notify_update_template(key.parent)
+					notify_update_template(key.parent())
 					self.redirect("/administration/template?key=%s#global-messages" % key.parent().urlsafe())
 		elif rel == "new_character":
 			succ, name, avatar, key = self.get_reqs_key("name", "avatar", "Template")
@@ -513,7 +513,7 @@ class AdminPage(webapp2.RequestHandler):
 					return self.display_error("Specified message set does not exist.")
 				msg = Message(parent=key, msid=message_set, title=title, body=body)
 				msg.put()
-				notify_update_template(key.parent)
+				notify_update_template(key.parent())
 				self.redirect("/administration/character?key=%s#global-messages" % key.urlsafe())
 		elif rel == "update_character_message":
 			mode = self.request.get("mode", "")
@@ -536,7 +536,7 @@ class AdminPage(webapp2.RequestHandler):
 					msg.title = title
 					msg.body = body
 					msg.put()
-					notify_update_template(key.parent.parent)
+					notify_update_template(key.parent().parent())
 					self.redirect("/administration/character?key=%s#global-messages" % key.parent().urlsafe())
 		elif rel == "set_character_name":
 			succ, name, key = self.get_reqs_key("name", "Template/Character")
@@ -544,7 +544,7 @@ class AdminPage(webapp2.RequestHandler):
 				char = key.get()
 				char.name = name
 				char.put()
-				notify_update_template(key.parent)
+				notify_update_template(key.parent())
 				self.redirect("/administration/character?key=%s#properties" % key.urlsafe())
 		elif rel == "set_character_avatar":
 			succ, avatar, key = self.get_reqs_key("avatar", "Template/Character")
@@ -552,7 +552,7 @@ class AdminPage(webapp2.RequestHandler):
 				char = key.get()
 				char.avatar = avatar
 				char.put()
-				notify_update_template(key.parent)
+				notify_update_template(key.parent())
 				self.redirect("/administration/character?key=%s#properties" % key.urlsafe())
 		elif rel == "duplicate_character":
 			succ, name, key = self.get_reqs_key("name", "Template/Character")
@@ -562,7 +562,7 @@ class AdminPage(webapp2.RequestHandler):
 				newkey = Character(name=name, avatar=old.avatar, parent=key.parent()).put()
 				for oldm in oldmsgs:
 					Message(msid=oldm.msid, title=oldm.title, body=oldm.body, parent=newkey).put()
-				notify_update_template(key.parent)
+				notify_update_template(key.parent())
 				self.redirect("/administration/character?key=%s#properties" % newkey.urlsafe())
 		elif rel == "delete_character":
 			succ, key = self.get_reqs_key("Template/Character")
@@ -571,7 +571,7 @@ class AdminPage(webapp2.RequestHandler):
 				for mkey in oldkeys:
 					mkey.delete()
 				key.delete()
-				notify_update_template(key.parent)
+				notify_update_template(key.parent())
 				self.redirect("/administration/template?key=%s#characters" % key.parent().urlsafe())
 		elif rel == "delete_template":
 			succ, key = self.get_reqs_key("Template")
