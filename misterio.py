@@ -171,7 +171,7 @@ class LogoffPage(webapp2.RequestHandler):
 		else:
 			self.redirect(users.create_logout_url('/'))
 def get_js_timestamp(x):
-	return int(1000 * time.mktime(x.timetuple()))
+	return int(1000 * time.mktime(x.timetuple()) + x.microsecond / 1000)
 class DynamicPage(VerifyingHandler):
 	def build_post_obj(self, post, include_prev=False):
 		out = {"id": post.key.id(), "data": post.msg, "from": post.cid.id(), "prev": post.response_to and post.response_to.id(), "date": get_js_timestamp(post.date), "to": post.target and post.target.id(), "expect": post.needs_reply}
@@ -259,7 +259,7 @@ class DynamicPage(VerifyingHandler):
 			rsince = self.request.get("since", None)
 			if rsince == None or not rsince.isdigit():
 				return self.abort(400)
-			since = int(int(rsince) / 1000.0)
+			since = int(rsince) / 1000.0
 
 			pun_value = get_post_update_value(session.key)
 			recent_update, recent_update_time = post_updated_since(session.key, int(rsince))
@@ -279,15 +279,15 @@ class DynamicPage(VerifyingHandler):
 				qpo = memcache.get(mcid)
 				qp = unwrap_for_update(memcache.get(mcid), pun_value)
 				if qp == None:
-					logging.debug("missed qp cache (%s)" % qpo)
-					qp = Post.query(Post.date >= datetime.datetime.fromtimestamp(since), ancestor=session.key).count()
+					qp = Post.query(Post.date > datetime.datetime.fromtimestamp(since), ancestor=session.key).count()
+					logging.debug("missed qp cache (%s): messages since (%s) are %d" % (qpo, since, qp))
 					memcache.set(mcid, wrap_for_update(qp, pun_value))
 				else:
 					qp = int(qp)
 			else:
 				qp = 0
 
-			o = {"inbox": qc, "feed": qp, "next_since": recent_update_time + 1 if recent_update_time != None else None}
+			o = {"inbox": qc, "feed": qp, "next_since": recent_update_time if recent_update_time != None else None}
 		elif dynamic_id == "predefs":
 			sets = session.activated
 			msgout = []
