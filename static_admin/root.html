@@ -58,11 +58,31 @@
             <div class="alert alert-warning">No templates currently exist.</div>
           {% endif %}
           <form class="input-group" action="/administration/new_template" method="post">
-            <input type="text" name="name" class="form-control" placeholder="Template name...">
+            <input class="form-control" type="text" name="name" placeholder="Template name...">
             <span class="input-group-btn">
               <button class="btn btn-warning" type="submit">New Original Template</button>
             </span>
           </form>
+		  <button style="margin-top: 20px;" type="button" class="btn btn-warning pull-right" data-toggle="modal" data-target="#loadTemplate">
+		    Load Template...
+		  </button>
+		  <form class="modal fade" id="loadTemplate" action="/administration/load_template" tabindex="-1" role="dialog" method="post">
+			<div class="modal-dialog">
+			  <div class="modal-content">
+				<div class="modal-header">
+				  <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				  <h4 class="modal-title">Enter Template to Load</h4>
+				</div>
+				<div class="modal-body">
+				  <textarea class="form-control" name="template" placeholder="Copy-paste the JSON-encoded template here..."></textarea>
+				</div>
+				<div class="modal-footer">
+				  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				  <button type="submit" class="btn btn-primary">Load Template</button>
+				</div>
+			  </div><!-- /.modal-content -->
+			</div><!-- /.modal-dialog -->
+		  </form><!-- /.modal -->
         </div>
       </div>
 

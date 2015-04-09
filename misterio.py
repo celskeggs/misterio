@@ -62,6 +62,63 @@ def wrap_for_update(data, pun_actual):
 	if data == None:
 		return None
 	return "%s$%s" % (pun_actual, data)
+def dump_message(message):
+	return {"message_set": message.msid, "title": message.title, "body": message.body}
+def dump_character(character, messages):
+	enc_msgs = [dump_message(msg) for msg in messages if msg.key.parent() == character.key]
+	return {"name": character.name, "avatar": character.avatar, "messages": enc_msgs}
+def dump_template(template):
+	chars = Character.query(ancestor=template.key).fetch()
+	messages = Message.query(ancestor=template.key).fetch()
+	enc_chars = [dump_character(char, messages) for char in chars]
+	enc_global_msgs = [dump_message(msg) for msg in messages if msg.key.parent() == template.key]
+	return json.dumps({"name": template.name, "message_sets": template.message_sets, "characters": enc_chars, "global_messages": enc_global_msgs})
+def load_template(string):
+	try:
+		loaded = json.loads(string)
+	except ValueError, e:
+		return "Failed to decode JSON: %s" % e
+	err = verify_template(loaded)
+	if err:
+		return err
+	return load_template_real(loaded)
+def verify_type(dicti, key, typ, *args):
+	value = dicti.get(key, None)
+	if type(typ) == type:
+		if type(value) != typ and not (type(value) == unicode and typ == str):
+			return "Bad type of field %s: %s instead of %s" % (key, type(value), typ)
+	elif type(value) != list:
+		return "Bad type of field %s: %s instead of %s" % (key, type(value), list)
+	else:
+		for elem in value:
+			err = typ(elem, *args)
+			if err:
+				return err
+def verify_template(template):
+	return verify_type(template, "name", str) or verify_type(template, "message_sets", verify_message_set) or verify_type(template, "characters", verify_character, template["message_sets"]) or verify_type(template, "global_messages", verify_message, template["message_sets"])
+def verify_message_set(message_set):
+	if type(message_set) not in (str, unicode):
+		return "Expected string for message set"
+def load_template_real(template):
+	tkey = Template(name=template["name"], message_sets=template["message_sets"]).put()
+	for char in template["characters"]:
+		load_character(char, tkey)
+	for msg in template["global_messages"]:
+		load_message(msg, tkey)
+	return tkey
+def verify_character(character, message_sets):
+	return verify_type(character, "name", str) or verify_type(character, "avatar", str) or verify_type(character, "messages", verify_message, message_sets)
+def load_character(character, tkey):
+	ckey = Character(name=character["name"], avatar=character["avatar"], parent=tkey).put()
+	for msg in character["messages"]:
+		load_message(msg, ckey)
+def verify_message(message, message_sets):
+	err = verify_type(message, "message_set", str) or verify_type(message, "title", str) or verify_type(message, "body", str)
+	if err == None and message["message_set"] not in message_sets:
+		err = "Invalid message set (not in defined list): %s" % message["message_set"]
+	return err
+def load_message(message, pkey):
+	Message(msid=message["message_set"], title=message["title"], body=message["body"], parent=pkey).put()
 
 class Administrator(ndb.Model): # key is email
 	name = ndb.StringProperty(required=True, indexed=False)
@@ -454,6 +511,14 @@ class AdminPage(webapp2.RequestHandler):
 					Administrator(key=key, name=name).put()
 					self.redirect("/administration/#administrators")
 		# Template-related calls
+		elif rel == "load_template":
+			succ, template_data = self.get_reqs("template")
+			if succ:
+				loaded = load_template(template_data)
+				if type(loaded) != str:
+					self.redirect("/administration/template?key=%s" % loaded.urlsafe())
+				else:
+					self.display_error("The specified template is invalid: %s" % loaded)
 		elif rel == "new_template":
 			succ, name = self.get_reqs("name")
 			if succ:
@@ -777,6 +842,11 @@ class AdminPage(webapp2.RequestHandler):
 					self.display_error("The template that you are trying to delete either does not exist or has been deleted.")
 				else:
 					self.response.write(jt.render({"target": template, "warning": "You are attempting to delete a template and ALL ATTACHED CHARACTERS and ALL ATTACHED MESSAGES!", "type": "template", "keep": "/administration/template?key=%s" % key.urlsafe(), "destroy": "/administration/delete_template"}))
+		elif rel == "download_template":
+			succ, key = self.get_reqs_key("Template")
+			if succ:
+				self.response.headers["Content-Type"] = "text/plain"
+				self.response.write(dump_template(key.get()))
 		else:
 			self.abort(404)
 
