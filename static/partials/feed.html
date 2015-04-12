@@ -33,9 +33,9 @@
         </div>
         <div>
           <div markdown-preview="msg.data"></div>
-          <div class="panel panel-default" ng-if="msg.prevobj">
+          <div style="margin-top: 30px; margin-bottom: 0; opacity: 0.6;" class="panel panel-default" ng-if="msg.prevobj">
             <div class="panel-heading clearfix">
-              <h4 class="panel-title pull-left">{{user(msg.prevobj.from).name}} <span class="glyphicon glyphicon-arrow-right"></span> {{msg.prevobj.to === null ? "Todos" : user(msg.prevobj.to).name}} <span ng-if="msg.prevobj.expect">(Esperando respuesta)</span></h4>
+              <h4 class="panel-title pull-left">Mensaje anterior: {{user(msg.prevobj.from).name}} <span class="glyphicon glyphicon-arrow-right"></span> {{msg.prevobj.to === null ? "Todos" : user(msg.prevobj.to).name}} <span ng-if="msg.prevobj.expect">(Esperando respuesta)</span></h4>
               <div class="pull-right">
                 <h4><span class="label label-default">{{msg.prevobj.date | date:'yyyy-MM-dd HH:mm:ss'}}</span></h4>
               </div>
