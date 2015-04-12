@@ -14,7 +14,7 @@
 
 <h1>{{ternary(message.prev, 'Responder', 'Redactar')}}</h1>
 
-<form role="form" name="SendForm" class="form-horizontal" ng-submit="submit()">
+<form role="form" name="SendForm" class="form-horizontal">
   <div class="form-group">
     <label class="col-sm-2 control-label" for="input-to">Para</label>
     <div class="col-sm-10">
@@ -36,14 +36,6 @@
           </div>
         </li>
       </ul>
-    </div>
-  </div>
-  <div class="form-group" ng-hide="message.to === null">
-    <label class="col-sm-2 control-label" for="input-to">Modo</label>
-    <div class="col-sm-10">
-      <div class="checkbox">
-        <input type="checkbox" ng-disabled="message.to === null" ng-model="message.expect"> This message is a question, or otherwise expects a response.<br>(This will make the message show up in the target's inbox. In either case, it will still show up in everyone's feed.) <!-- This is in English because it's important to get right. -->
-      </div>
     </div>
   </div>
   <div class="row">
@@ -70,8 +62,11 @@
   </div>
   <div class="form-group">
     <div class="col-sm-offset-2 col-sm-10">
-      <button type="button" class="btn btn-warning" ng-disabled="SendForm.$pristine &amp;&amp; !dirty" ng-click="reset()">Reinicializar</button>
-      <button type="submit" class="btn btn-success" ng-disabled="SendForm.$invalid || sending">Enviar</button>
+      <button type="button" ng-if="message.to !== null && prev === null" ng-click="submit(true)" class="btn btn-success" ng-disabled="SendForm.$invalid || sending">Ask question (require response)</button>
+      <button type="button" ng-if="message.to !== null && prev === null" ng-click="submit(false)" class="btn btn-success" ng-disabled="SendForm.$invalid || sending">Send note (don't require response)</button>
+      <button type="button" ng-if="message.to !== null && prev !== null" ng-click="submit(true)" class="btn btn-success" ng-disabled="SendForm.$invalid || sending">Continue conversation (require response)</button>
+      <button type="button" ng-if="message.to !== null && prev !== null" ng-click="submit(false)" class="btn btn-success" ng-disabled="SendForm.$invalid || sending">Finish conversation (don't require response)</button>
+      <button type="button" ng-if="message.to === null" ng-click="submit(false)" class="btn btn-success" ng-disabled="SendForm.$invalid || sending">Send general message (don't require response)</button>
     </div>
   </div>
 </form>

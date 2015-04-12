@@ -97,13 +97,9 @@ app.controller('Predefs', ['$scope', '$location', '$routeParams', 'User', '$root
 
 app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Storage',
     function Compose($scope, $location, $routeParams, User, Storage) {
-  $scope.dirty = 0;
-  $scope.message = Storage.get('compose') || ($scope.dirty = 0, $scope.message = {
-    expect: false, to: null
-  });
+  $scope.message = Storage.get('compose') || ($scope.message = { to: null });
   $scope.$watchCollection('message', _.throttle(function(value) {
     Storage.set('compose', value);
-    $scope.dirty && ($scope.dirty--);
   }, 100));
 
   $scope.state = {
@@ -129,15 +125,9 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
     } else {
       $scope.message.to = id;
     }
-    if ($scope.message.to === null) {
-      $scope.message.expect = false;
-    }
   };
   $scope.selected = function(id) {
     return $scope.message.to === id;
-  };
-  $scope.toggle_expect = function() {
-    $scope.message.expect = !$scope.message.expect;
   };
 
   function gotPrev(prev) {
@@ -163,16 +153,13 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
 
   $scope.sending = false;
 
-  $scope.submit = function() {
+  $scope.submit = function(require_response) {
     var msg = $scope.message;
-    if (msg.to === null) {
-      msg.expect = false;
-    }
     $scope.sending = true;
     User.messages.send({
       data: msg.data,
       to: msg.to,
-      expect: msg.expect,
+      expect: require_response && msg.to !== null,
       prev: parseInt(msg.prev)
     }).then(function(data) {
       $scope.$emit('flash', 'info', 'Enviado!', 'Tu mensaje ha enviado!', {dismissable: true});
@@ -186,6 +173,8 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
   var id = $scope.message.prev = $routeParams.id || null;
   if (id) {
     $scope.getPrev();
+  } else {
+    $scope.prev = null;
   }
 }]);
 
