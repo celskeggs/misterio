@@ -53,7 +53,7 @@ def get_session_or_template_update_value(session):
 def unwrap_for_update(data, pun_actual):
 	if data == None:
 		return None
-	pun_value, data = data.split("$", 2)
+	pun_value, data = data.split("$", 1)
 	if pun_value == str(pun_actual):
 		return data
 	else:
@@ -172,7 +172,7 @@ class VerifyingHandler(webapp2.RequestHandler):
 			self.response.delete_cookie("character")
 			self.redirect("/select")
 			return None, None
-		cid, sid = char.split(":", 2)
+		cid, sid = char.split(":", 1)
 		if not (cid.isdigit() and sid.isdigit()):
 			self.response.delete_cookie("character")
 			self.redirect("/select")
@@ -385,6 +385,7 @@ class DynamicPage(VerifyingHandler):
 					memcache.set(mcid, wrap_for_update(json.dumps(msgout), stun_value))
 				else:
 					msgout = json.loads(messages)
+			msgout.reverse()
 			o = {"messages": msgout}
 		elif dynamic_id in ("feed", "inbox"):
 			limit = 10
