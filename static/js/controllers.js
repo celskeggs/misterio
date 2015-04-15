@@ -81,6 +81,10 @@ app.controller('Feed', ['$scope', '$location', '$routeParams', 'User', '$rootSco
   };
 
   $scope.restart();
+
+  if ($rootScope.is_tutorial()) {
+    introJs().start();
+  }
 }]);
 
 app.controller('Predefs', ['$scope', '$location', '$routeParams', 'User', '$rootScope',

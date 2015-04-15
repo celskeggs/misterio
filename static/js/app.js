@@ -23,6 +23,7 @@ app.config(['$routeProvider', function($routeProvider) {
   r('/users', 'users', 'Users');
   r('/users/:cid', 'feed', 'Feed');
   r('/messages', 'predefs', 'Predefs');
+  r('/tutorial', 'feed', 'Feed');
 
   $routeProvider.otherwise({
     templateUrl: 'partials/not-found.html'
@@ -80,6 +81,10 @@ app.run(function($rootScope, $interval, $location, User) {
     active: function(route) {
       return route === $location.path();
     }
+  };
+
+  $rootScope.is_tutorial = function() {
+    return $location.path().lastIndexOf("/tutorial", 0) === 0;
   };
 
   $rootScope.username = function() {
