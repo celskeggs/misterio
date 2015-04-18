@@ -34,10 +34,12 @@ handlers:
 - url: /fonts
   static_dir: static/fonts/
   secure: always
+  expiration: 1d
   login: required
 - url: /lib
   static_dir: static/lib/
   secure: always
+  expiration: 1d
   login: required
 - url: /partials
   static_dir: static/partials/

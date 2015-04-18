@@ -152,14 +152,14 @@ class Post(ndb.Model):
 	needs_reply = ndb.BooleanProperty(required=False)
 	response_to = ndb.KeyProperty(required=False, kind="Post")
 
-LOAD_TESTING_TOKEN = None
+LOAD_TESTING_TOKEN, LT_SESS, LT_CHAR = None, 5720147234914304, 5066549580791808
 
 class VerifyingHandler(webapp2.RequestHandler):
 	def get_and_verify_character(self, char=None): # returns (character, session)
 		if LOAD_TESTING_TOKEN != None and self.request.headers.get("X-Bypass-Token", None) == LOAD_TESTING_TOKEN:
-			session = Session.get_by_id(5649391675244544)
+			session = Session.get_by_id(LT_SESS)
 			if session == None: return None, None
-			character = Character.get_by_id(5741031244955648, parent=session.template)
+			character = Character.get_by_id(LT_CHAR, parent=session.template)
 			if character == None: return None, None
 			return character, session
 		email = users.get_current_user().email()
@@ -705,6 +705,15 @@ class AdminPage(webapp2.RequestHandler):
 					return self.display_error("The template that you are trying to use either does not exist or has been deleted.")
 				session = Session(template=key, name=name, activated=[], assignments=[]).put()
 				self.redirect("/administration/session?key=%s" % session.urlsafe())
+		elif rel == "delete_session":
+			succ, key = self.get_reqs_key("Session")
+			if succ:
+				oldposts = Post.query(ancestor=key).fetch(keys_only=True)
+				for pkey in oldposts:
+					pkey.delete()
+				key.delete()
+				notify_update_session(key)
+				self.redirect("/administration")
 		elif rel == "set_session_name":
 			succ, name, key = self.get_reqs_key("name", "Session")
 			if succ:
@@ -843,6 +852,17 @@ class AdminPage(webapp2.RequestHandler):
 					self.display_error("The template that you are trying to delete either does not exist or has been deleted.")
 				else:
 					self.response.write(jt.render({"target": template, "warning": "You are attempting to delete a template and ALL ATTACHED CHARACTERS and ALL ATTACHED MESSAGES!", "type": "template", "keep": "/administration/template?key=%s" % key.urlsafe(), "destroy": "/administration/delete_template"}))
+		elif rel == "prepare_delete_session":
+			self.response.headers["Content-Type"] = "text/html"
+			jt = JINJA_ENVIRONMENT.get_template('static_admin/prepare_delete.html')
+
+			key = self.safe_get_key("Session")
+			if key != None:
+				session = key.get()
+				if session == None:
+					self.display_error("The session that you are trying to delete either does not exist or has been deleted.")
+				else:
+					self.response.write(jt.render({"target": session, "warning": "You are attempting to delete a session and ALL PLAYER ASSIGNMENT and ALL POSTS!", "type": "session", "keep": "/administration/session?key=%s" % key.urlsafe(), "destroy": "/administration/delete_session"}))
 		elif rel == "download_template":
 			succ, key = self.get_reqs_key("Template")
 			if succ:

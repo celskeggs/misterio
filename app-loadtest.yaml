@@ -38,6 +38,7 @@ handlers:
 - url: /lib
   static_dir: static/lib/
   secure: always
+  expiration: 1d
 #  login: required
 - url: /partials
   static_dir: static/partials/
@@ -51,7 +52,7 @@ handlers:
 - url: /administration(/.*)?
   script: misterio.administration
   secure: always
-  login: admin
+  login: required
 - url: /.*
   script: misterio.application
   secure: always
