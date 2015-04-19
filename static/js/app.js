@@ -23,6 +23,7 @@ app.config(['$routeProvider', function($routeProvider) {
   r('/users', 'users', 'Users');
   r('/users/:cid', 'feed', 'Feed');
   r('/messages', 'predefs', 'Predefs');
+  r('/page/:pid', 'page', 'Page');
 
   $routeProvider.otherwise({
     templateUrl: 'partials/not-found.html'

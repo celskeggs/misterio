@@ -99,6 +99,15 @@ app.factory('User', ['$rootScope', '$location', '$http', '$q',
     },
     others: [],
     userLookup: {},
+    pages: {
+      get: function(pid) {
+        return use($http.get('/dynamic/get-page', {
+          params: {
+            pid: pid
+          }
+        }));
+      },
+    },
     messages: {
       get: function(id) {
         return use($http.get('/dynamic/get-post', {

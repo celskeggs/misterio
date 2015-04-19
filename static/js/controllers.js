@@ -178,6 +178,18 @@ app.controller('Compose', ['$scope', '$location', '$routeParams', 'User', 'Stora
   }
 }]);
 
+app.controller('Page', ['$scope', '$routeParams', 'User',
+    function Page($scope, $routeParams, User) {
+
+  $scope.page = {title: "Loading...", body: "Cargando..."};
+
+  User.pages.get($routeParams.pid).then(function(page) {
+    $scope.page = page;
+  }, function(err) {
+    $scope.page = {title: "Not Found", body: "Not Found"};
+  });
+}]);
+
 app.controller('Users', ['$scope', '$location', 'User',
     function Users($scope, $location, User) {
   $scope.showCredits = false;

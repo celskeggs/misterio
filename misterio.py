@@ -67,12 +67,16 @@ def dump_message(message):
 def dump_character(character, messages):
 	enc_msgs = [dump_message(msg) for msg in messages if msg.key.parent() == character.key]
 	return {"name": character.name, "avatar": character.avatar, "messages": enc_msgs}
+def dump_page(page):
+	return {"pid": page.pid, "title": page.title, "body": page.body}
 def dump_template(template):
 	chars = Character.query(ancestor=template.key).fetch()
 	messages = Message.query(ancestor=template.key).fetch()
+	pages = Page.query(ancestor=template.key).fetch()
 	enc_chars = [dump_character(char, messages) for char in chars]
 	enc_global_msgs = [dump_message(msg) for msg in messages if msg.key.parent() == template.key]
-	return json.dumps({"name": template.name, "message_sets": template.message_sets, "characters": enc_chars, "global_messages": enc_global_msgs})
+	enc_pages = [dump_page(page) for page in pages]
+	return json.dumps({"name": template.name, "message_sets": template.message_sets, "characters": enc_chars, "global_messages": enc_global_msgs, "pages": enc_pages})
 def load_template(string):
 	try:
 		loaded = json.loads(string)
@@ -83,6 +87,8 @@ def load_template(string):
 		return err
 	return load_template_real(loaded)
 def verify_type(dicti, key, typ, *args):
+	if type(dicti) != dict:
+		return "Expected dictionary!"
 	value = dicti.get(key, None)
 	if type(typ) == type:
 		if type(value) != typ and not (type(value) == unicode and typ == str):
@@ -95,7 +101,7 @@ def verify_type(dicti, key, typ, *args):
 			if err:
 				return err
 def verify_template(template):
-	return verify_type(template, "name", str) or verify_type(template, "message_sets", verify_message_set) or verify_type(template, "characters", verify_character, template["message_sets"]) or verify_type(template, "global_messages", verify_message, template["message_sets"])
+	return verify_type(template, "name", str) or verify_type(template, "pages", verify_page) or verify_type(template, "message_sets", verify_message_set) or verify_type(template, "characters", verify_character, template["message_sets"]) or verify_type(template, "global_messages", verify_message, template["message_sets"])
 def verify_message_set(message_set):
 	if type(message_set) not in (str, unicode):
 		return "Expected string for message set"
@@ -105,6 +111,8 @@ def load_template_real(template):
 		load_character(char, tkey)
 	for msg in template["global_messages"]:
 		load_message(msg, tkey)
+	for page in template["pages"]:
+		load_page(page, tkey)
 	return tkey
 def verify_character(character, message_sets):
 	return verify_type(character, "name", str) or verify_type(character, "avatar", str) or verify_type(character, "messages", verify_message, message_sets)
@@ -119,6 +127,10 @@ def verify_message(message, message_sets):
 	return err
 def load_message(message, pkey):
 	Message(msid=message["message_set"], title=message["title"], body=message["body"], parent=pkey).put()
+def verify_page(page):
+	return verify_type(page, "title", str) or verify_type(page, "body", str) or verify_type(page, "pid", int)
+def load_page(page, tkey):
+	Page(title=page["title"], body=page["body"], pid=page["pid"], parent=tkey).put()
 
 class Administrator(ndb.Model): # key is email
 	name = ndb.StringProperty(required=True, indexed=False)
@@ -135,6 +147,10 @@ class Message(ndb.Model):
 	title = ndb.StringProperty(indexed=False, required=True)
 	body = ndb.TextProperty(indexed=False, required=True)
 	charspec = ndb.ComputedProperty(lambda self: self.key.parent().kind() == "Character")
+class Page(ndb.Model):
+	pid = ndb.IntegerProperty(indexed=True, required=True)
+	title = ndb.StringProperty(indexed=True, required=True)
+	body = ndb.TextProperty(indexed=False, required=True)
 
 class Assignment(ndb.Model): # not stored in database - stored in Session entity.
 	cid = ndb.KeyProperty(required=True, kind=Character)
@@ -364,6 +380,23 @@ class DynamicPage(VerifyingHandler):
 				qp = 0
 
 			o = {"inbox": qc, "feed": qp, "next_since": recent_update_time + 1 if recent_update_time != None else None}
+		elif dynamic_id == "get-page":
+			pid = self.request.get("pid", None)
+			if pid == None or not pid.isdigit():
+				return self.abort(400)
+			pid = int(pid)
+			mcid = "PAG/%d" % pid
+			page = memcache.get(mcid)
+			if page == None:
+				logging.debug("missed page cache (%s)" % mcid)
+				page = Page.query(Page.pid == pid, ancestor=session.template).get()
+				page = {"pid": pid, "title": page.title, "body": page.body}
+				memcache.set(mcid, json.dumps(page))
+			else:
+				page = json.loads(page)
+			if page == None:
+				return self.abort(404) # gone
+			o = page
 		elif dynamic_id == "predefs":
 			sets = session.activated
 			msgout = []
@@ -539,6 +572,7 @@ class AdminPage(webapp2.RequestHandler):
 				oldtemplate = key.get()
 				oldchars = Character.query(ancestor=key).fetch()
 				oldmsgs = Message.query(ancestor=key).fetch()
+				oldpages = Page.query(ancestor=key).fetch()
 				newkey = Template(name=name, message_sets=oldtemplate.message_sets).put()
 				for char in oldchars:
 					newchar = Character(name=char.name, avatar=char.avatar, parent=newkey).put()
@@ -548,6 +582,8 @@ class AdminPage(webapp2.RequestHandler):
 				for oldm in oldmsgs:
 					if oldm.key.parent() == key:
 						Message(msid=oldm.msid, title=oldm.title, body=oldm.body, parent=newkey).put()
+				for page in oldpages:
+					Page(pid=page.pid, title=page.title, body=page.body, parent=newkey).put()
 				self.redirect("/administration/template?key=%s#properties" % newkey.urlsafe())
 		elif rel == "add_message_set":
 			succ, name, key = self.get_reqs_key("name", "Template")
@@ -693,9 +729,40 @@ class AdminPage(webapp2.RequestHandler):
 				oldchars = Character.query(ancestor=key).fetch(keys_only=True)
 				for ckey in oldchars:
 					ckey.delete()
+				oldpages = Page.query(ancestor=key).fetch(keys_only=True)
+				for pkey in oldpages:
+					pkey.delete()
 				key.delete()
 				notify_update_template(key)
 				self.redirect("/administration")
+		elif rel == "new_page":
+			succ, title, key = self.get_reqs_key("title", "Template")
+			if succ:
+				template = key.get()
+				if template == None:
+					return self.display_error("The template that you are trying to use either does not exist or has been deleted.")
+				pid = ((int(time.time() * 2**10) & (2 ** 42 - 1)) << 20) + random.getrandbits(20)
+				pkey = Page(pid=pid, parent=key, title=title, body="Write your page here.\n\n> *You can use markdown!*").put()
+				self.redirect("/administration/page?key=%s" % pkey.urlsafe())
+		elif rel == "edit_page":
+			succ, title, body, key = self.get_reqs_key("title", "body", "Template/Page")
+			if succ:
+				page = key.get()
+				if page == None:
+					return self.display_error("The page that you are trying to edit either does not exist or has been deleted.")
+				page.title = title
+				page.body = body
+				page.put()
+				memcache.delete("PAG/%d" % page.pid)
+				self.redirect("/administration/page?key=%s" % key.urlsafe())
+		elif rel == "delete_page":
+			succ, key = self.get_reqs_key("Template/Page")
+			if succ:
+				page = key.get()
+				if page == None:
+					return self.display_error("The page that you are trying to delete either does not exist or has been deleted.")
+				key.delete()
+				self.redirect("/administration/template?key=%s" % key.parent().urlsafe())
 		# Session-related calls
 		elif rel == "new_session":
 			succ, name, key = self.get_reqs_key("name", "Template")
@@ -772,10 +839,23 @@ class AdminPage(webapp2.RequestHandler):
 				template = key.get()
 				global_messages = Message.query(Message.charspec == False, ancestor=key).fetch()
 				characters = Character.query(ancestor=key).fetch()
+				pages = Page.query(ancestor=key).fetch()
 				if template == None:
 					self.display_error("The template that you are trying to view either does not exist or has been deleted.")
 				else:
-					self.response.write(jt.render({"template": template, "global_messages": global_messages, "characters": characters, "avatars": avatars}))
+					self.response.write(jt.render({"template": template, "global_messages": global_messages, "characters": characters, "avatars": avatars, "pages": pages}))
+		elif rel == "page":
+			self.response.headers["Content-Type"] = "text/html"
+			jt = JINJA_ENVIRONMENT.get_template('static_admin/page.html')
+
+			key = self.safe_get_key("Template/Page")
+			if key != None:
+				page = key.get()
+				template = key.parent().get()
+				if page == None:
+					self.display_error("The page that you are trying to view either does not exist or has been deleted.")
+				else:
+					self.response.write(jt.render({"template": template, "page": page}))
 		elif rel == "session":
 			self.response.headers["Content-Type"] = "text/html"
 			jt = JINJA_ENVIRONMENT.get_template('static_admin/session.html')
