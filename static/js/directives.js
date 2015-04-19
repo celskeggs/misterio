@@ -61,13 +61,34 @@ app.directive('feedCounter', function(User) {
 
 app.directive('markdownPreview', function() {
   return function(scope, element, attrs) {
+    var renderer = new marked.Renderer();
+
+    renderer.table = function(header, body) {
+      return '<table class="table"><thead>' + header + '</thead><tbody>' + body + '</tbody></table>';
+    };
+    renderer.image = function(href, title, text) {
+      var spt = href.split("@");
+      if (spt.length >= 3) {
+        href = href.substring(spt[0].length + spt[1].length + 2);
+      }
+      var out = '<img src="/img/' + href + '" alt="' + text + '"';
+      if (spt.length >= 3) {
+        out += ' width="' + parseInt(spt[0]) + '"';
+        out += ' height="' + parseInt(spt[1]) + '"';
+      }
+      if (title) {
+        out += ' title="' + title + '"';
+      }
+      out += this.options.xhtml ? '/>' : '>';
+      return out;
+    };
+
+    var opts = { renderer: renderer };
+
     var update = _.throttle(function update(text) {
-      var html = (typeof marked === 'function' && text) ? marked(text) : '';
+      var html = (typeof marked === 'function' && text) ? marked(text, opts) : '';
       $(element).html(html);
     }, 500);
-    /*function update(text) {
-      $(element).is(':visible') && trigger(text);
-    }*/
     scope.$watch(attrs.markdownPreview, update);
     update(scope.$eval(attrs.markdownPreview));
   };
