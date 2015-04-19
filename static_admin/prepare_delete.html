@@ -36,10 +36,10 @@
         </noscript>
       </div>
 
-      <div style="margin-top: 200px;" class="alert alert-danger"><strong>{{ warning }}</strong> Make certain that you are <strong>absolutely certain</strong> that you want to delete <strong>{{ target.name }}</strong>, because <strong>{{ target.name }}</strong> will be <strong>absolutely unrecoverable</strong>!</div>
+      <div style="margin-top: 200px;" class="alert alert-danger"><strong>{{ warning }}</strong> Make certain that you are <strong>absolutely certain</strong> that you want to delete <strong>{{ target_name }}</strong>, because <strong>{{ target_name }}</strong> will be <strong>absolutely unrecoverable</strong>!</div>
 
-      <div class="col-xs-7"><a style="width: 100%;" class="btn btn-success" href="{{ keep }}">No! Do not delete this {{ type }}, <strong>{{ target.name }}</strong>.</a></div>
-      <div class="col-xs-5"><form action="{{ destroy }}" method="post"><input type="hidden" name="key" value="{{ target.key.urlsafe() }}"><button style="width: 100%;" class="btn btn-danger" type="submit">Yes! Delete this {{ type }}, <strong>{{ target.name }}</strong>, <strong>permanently</strong>!</button></form></div>
+      <div class="col-xs-7"><a style="width: 100%;" class="btn btn-success" href="{{ keep }}">No! Do not delete this {{ type }}, <strong>{{ target_name }}</strong>.</a></div>
+      <div class="col-xs-5"><form action="{{ destroy }}" method="post"><input type="hidden" name="key" value="{{ target_key }}"><button style="width: 100%;" class="btn btn-danger" type="submit">Yes! Delete this {{ type }}, <strong>{{ target_name }}</strong>, <strong>permanently</strong>!</button></form></div>
     </div>
   </div>
 

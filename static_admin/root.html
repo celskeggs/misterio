@@ -149,6 +149,34 @@
           </form>
         </div>
       </div>
+
+      <a name="blobs"></a>
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Image Uploads</h3>
+        </div>
+        <div class="panel-body">
+          <div class="alert alert-info">An <strong>uploaded image</strong> has been uploaded by an administrator to be used in a template.</div>
+          {% if blobs %}
+            <table class="table">
+             <thead>
+               <tr><th>Name</th><th>Creation Date</th><th>Actions</th></tr>
+             </thead>
+             <tbody>
+                {% for blob in blobs %}
+                  <form action="/administration/prepare_delete_blob" method="get">
+                    <input type="hidden" name="key" value="{{ str(blob.key()) }}" />
+                    <tr><td>{{ blob.filename }}</td><td>{{ blob.creation.ctime() }}</td><td><a href="{{ blobstore_image(blob) }}" class="btn btn-success">View Image</a><button class="btn btn-danger" type="submit">Delete Image</button></td></tr>
+                  </form>
+                {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <div class="alert alert-warning">No uploaded images currently exist.</div>
+          {% endif %}
+          <a href="/administration/upload_entry" class="btn btn-info">Upload image...</a>
+        </div>
+      </div>
     </div>
   </div>
 

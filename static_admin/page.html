@@ -65,7 +65,7 @@
         <div class="panel-body">
           <div class="form-horizontal">
             <div class="alert alert-success"><strong>Pages</strong>, just like messages, may be formatted using <a href="https://daringfireball.net/projects/markdown/basics"><strong>Markdown</strong></a>.</div>
-            <form class="form-group" actions="/administration/delete_page" method="post">
+            <form class="form-group" action="/administration/prepare_delete_page" method="get">
               <label for="templ_id" class="col-sm-2 control-label">Page ID</label>
               <div class="col-sm-8">
                 <input id="templ_id" disabled type="text" name="pid" class="form-control" value="{{ page.pid }}">

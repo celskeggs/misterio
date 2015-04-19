@@ -1,6 +1,7 @@
 import webapp2, os, cgi, datetime, sys, time, logging, json, urllib, jinja2, random
-from google.appengine.api import users, memcache
-from google.appengine.ext import ndb
+from google.appengine.api import users, memcache, images
+from google.appengine.ext import ndb, blobstore
+from google.appengine.ext.webapp import blobstore_handlers
 
 with open("avatar-list.txt", "r") as f:
 	avatars = list(filter(None, (x.strip() for x in f.readlines())))
@@ -13,6 +14,8 @@ JINJA_ENVIRONMENT = jinja2.Environment(
     extensions=['jinja2.ext.autoescape'],
     autoescape=True)
 JINJA_ENVIRONMENT.globals["len"] = len
+JINJA_ENVIRONMENT.globals["str"] = str
+JINJA_ENVIRONMENT.globals["blobstore_image"] = lambda x: images.get_serving_url(x, secure_url=True, size=0)
 
 def is_user_admin():
 	user = users.get_current_user()
@@ -544,6 +547,18 @@ class AdminPage(webapp2.RequestHandler):
 				else:
 					Administrator(key=key, name=name).put()
 					self.redirect("/administration/#administrators")
+		elif rel == "upload_do":
+			# we don't actually care about the blobstore key in the current implementation
+			self.redirect("/administration/#blobs")
+		elif rel == "delete_blob":
+			succ, key = self.get_reqs("key")
+			if succ:
+				blob = blobstore.BlobInfo.get(blobstore.BlobKey(key))
+				if blob == None:
+					self.display_error("The specified blob was not found.")
+				else:
+					blob.delete()
+					self.redirect("/administration/#blobs")
 		# Template-related calls
 		elif rel == "load_template":
 			succ, template_data = self.get_reqs("template")
@@ -822,16 +837,20 @@ class AdminPage(webapp2.RequestHandler):
 	def get(self, rel=""):
 		self.check_access()
 		if rel == "":
-			self.response.headers["Content-Type"] = "text/html"
 			jt = JINJA_ENVIRONMENT.get_template('static_admin/root.html')
 
 			templates = Template.query().fetch()
 			sessions = Session.query().fetch()
 			administrators = Administrator.query().fetch()
+			blob_q = blobstore.BlobInfo.all().run(batch_size=1000) # not a list!
+			blobs = [blob for blob in blob_q]
 
-			self.response.write(jt.render({"templates": templates, "sessions": sessions, "administrators": administrators}))
+			self.response.write(jt.render({"templates": templates, "sessions": sessions, "administrators": administrators, "blobs": blobs}))
+		elif rel == "upload_entry":
+			jt = JINJA_ENVIRONMENT.get_template('static_admin/upload.html')
+
+			self.response.write(jt.render({"upload_url": blobstore.create_upload_url("/administration/upload_do", max_bytes_total=1024*1024)}))
 		elif rel == "template":
-			self.response.headers["Content-Type"] = "text/html"
 			jt = JINJA_ENVIRONMENT.get_template('static_admin/template.html')
 
 			key = self.safe_get_key("Template")
@@ -845,7 +864,6 @@ class AdminPage(webapp2.RequestHandler):
 				else:
 					self.response.write(jt.render({"template": template, "global_messages": global_messages, "characters": characters, "avatars": avatars, "pages": pages}))
 		elif rel == "page":
-			self.response.headers["Content-Type"] = "text/html"
 			jt = JINJA_ENVIRONMENT.get_template('static_admin/page.html')
 
 			key = self.safe_get_key("Template/Page")
@@ -857,7 +875,6 @@ class AdminPage(webapp2.RequestHandler):
 				else:
 					self.response.write(jt.render({"template": template, "page": page}))
 		elif rel == "session":
-			self.response.headers["Content-Type"] = "text/html"
 			jt = JINJA_ENVIRONMENT.get_template('static_admin/session.html')
 
 			key = self.safe_get_key("Session")
@@ -875,7 +892,6 @@ class AdminPage(webapp2.RequestHandler):
 					assignment_map = dict((assignment.cid, assignment.player_email) for assignment in session.assignments)
 					self.response.write(jt.render({"session": session, "template": template, "characters": characters, "assignment_map": assignment_map, "template_names": template_names}))
 		elif rel == "posts":
-			self.response.headers["Content-Type"] = "text/html"
 			jt = JINJA_ENVIRONMENT.get_template('static_admin/posts.html')
 
 			key = self.safe_get_key("Session")
@@ -891,7 +907,6 @@ class AdminPage(webapp2.RequestHandler):
 				namemap = dict((char.key, char.name) for char in chars)
 				self.response.write(jt.render({"session": session, "posts": posts, "limit": limit, "avatars": avatarmap, "names": namemap}))
 		elif rel == "character":
-			self.response.headers["Content-Type"] = "text/html"
 			jt = JINJA_ENVIRONMENT.get_template('static_admin/character.html')
 
 			key = self.safe_get_key("Template/Character")
@@ -906,7 +921,6 @@ class AdminPage(webapp2.RequestHandler):
 					character_messages = Message.query(ancestor=key).fetch()
 					self.response.write(jt.render({"template": template, "character": character, "character_messages": character_messages, "avatars": avatars}))
 		elif rel == "prepare_delete_character":
-			self.response.headers["Content-Type"] = "text/html"
 			jt = JINJA_ENVIRONMENT.get_template('static_admin/prepare_delete.html')
 
 			key = self.safe_get_key("Template/Character")
@@ -918,9 +932,8 @@ class AdminPage(webapp2.RequestHandler):
 				elif template == None:
 					self.display_error("The template of the character that you are trying to delete either does not exist or has been deleted.")
 				else:
-					self.response.write(jt.render({"target": character, "warning": "You are attempting to delete a character and ALL ATTACHED MESSAGES!", "type": "character", "keep": "/administration/character?key=%s" % key.urlsafe(), "destroy": "/administration/delete_character"}))
+					self.response.write(jt.render({"target_key": character.key.urlsafe(), "target_name": character.name, "warning": "You are attempting to delete a character and ALL ATTACHED MESSAGES!", "type": "character", "keep": "/administration/character?key=%s" % key.urlsafe(), "destroy": "/administration/delete_character"}))
 		elif rel == "prepare_delete_template":
-			self.response.headers["Content-Type"] = "text/html"
 			jt = JINJA_ENVIRONMENT.get_template('static_admin/prepare_delete.html')
 
 			key = self.safe_get_key("Template")
@@ -931,9 +944,8 @@ class AdminPage(webapp2.RequestHandler):
 				if template == None:
 					self.display_error("The template that you are trying to delete either does not exist or has been deleted.")
 				else:
-					self.response.write(jt.render({"target": template, "warning": "You are attempting to delete a template and ALL ATTACHED CHARACTERS and ALL ATTACHED MESSAGES!", "type": "template", "keep": "/administration/template?key=%s" % key.urlsafe(), "destroy": "/administration/delete_template"}))
+					self.response.write(jt.render({"target_key": template.key.urlsafe(), "target_name": template.name, "warning": "You are attempting to delete a template and ALL ATTACHED CHARACTERS and ALL ATTACHED MESSAGES!", "type": "template", "keep": "/administration/template?key=%s" % key.urlsafe(), "destroy": "/administration/delete_template"}))
 		elif rel == "prepare_delete_session":
-			self.response.headers["Content-Type"] = "text/html"
 			jt = JINJA_ENVIRONMENT.get_template('static_admin/prepare_delete.html')
 
 			key = self.safe_get_key("Session")
@@ -942,7 +954,27 @@ class AdminPage(webapp2.RequestHandler):
 				if session == None:
 					self.display_error("The session that you are trying to delete either does not exist or has been deleted.")
 				else:
-					self.response.write(jt.render({"target": session, "warning": "You are attempting to delete a session and ALL PLAYER ASSIGNMENT and ALL POSTS!", "type": "session", "keep": "/administration/session?key=%s" % key.urlsafe(), "destroy": "/administration/delete_session"}))
+					self.response.write(jt.render({"target_key": session.key.urlsafe(), "target_name": session.name, "warning": "You are attempting to delete a session and ALL PLAYER ASSIGNMENT and ALL POSTS!", "type": "session", "keep": "/administration/session?key=%s" % key.urlsafe(), "destroy": "/administration/delete_session"}))
+		elif rel == "prepare_delete_page":
+			jt = JINJA_ENVIRONMENT.get_template('static_admin/prepare_delete.html')
+
+			key = self.safe_get_key("Template/Page")
+			if key != None:
+				page = key.get()
+				if page == None:
+					self.display_error("The page that you are trying to delete either does not exist or has been deleted.")
+				else:
+					self.response.write(jt.render({"target_key": page.key.urlsafe(), "target_name": page.title, "warning": "You are attempting to delete a page!", "type": "page", "keep": "/administration/page?key=%s" % key.urlsafe(), "destroy": "/administration/delete_page"}))
+		elif rel == "prepare_delete_blob":
+			jt = JINJA_ENVIRONMENT.get_template('static_admin/prepare_delete.html')
+
+			succ, key = self.get_reqs("key")
+			if succ:
+				blob = blobstore.BlobInfo.get(blobstore.BlobKey(key))
+				if blob == None:
+					self.display_error("The blob that you are trying to delete either does not exist or has been deleted.")
+				else:
+					self.response.write(jt.render({"target_key": key, "target_name": blob.filename, "warning": "You are attempting to delete an image!", "type": "image", "keep": "/administration/#blobs", "destroy": "/administration/delete_blob"}))
 		elif rel == "download_template":
 			succ, key = self.get_reqs_key("Template")
 			if succ:
@@ -955,4 +987,5 @@ administration = webapp2.WSGIApplication([
 	('/administration', AdminPage),
 	('/administration/(.*)', AdminPage),
 ])
+
 
