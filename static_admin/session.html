@@ -111,7 +111,7 @@
                   <form class="list-group-item{% if message_set in session.activated %} active{% endif %}" action="/administration/toggle_message_set" method="post">
                     <input type="hidden" name="key" value="{{ session.key.urlsafe() }}" />
                     <input type="hidden" name="name" value="{{ message_set }}" />
-                    <button class="btn btn-danger pull-right" type="submit">{% if message_set in session.activated %}Unpublish{% else %}Publish{% endif %}</button>
+                    <button class="btn btn-primary pull-right" type="submit">{% if message_set in session.activated %}Unpublish{% else %}Publish{% endif %}</button>
                     <div style="margin-top: 7px; margin-bottom: 7px;">{{ message_set }}</div>
                   </form>
                 {% endfor %}
