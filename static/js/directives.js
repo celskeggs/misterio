@@ -59,7 +59,7 @@ app.directive('feedCounter', function(User) {
   }
 });
 
-app.directive('markdownPreview', function() {
+app.directive('markdownPreview', function($location) {
   return function(scope, element, attrs) {
     var renderer = new marked.Renderer();
 
@@ -71,7 +71,10 @@ app.directive('markdownPreview', function() {
       if (spt.length >= 3) {
         href = href.substring(spt[0].length + spt[1].length + 2);
       }
-      var out = '<img src="/img/' + href + '" alt="' + text + '"';
+      if (href.substring(0, 7) != "http://" && href.substring(0, 8) != "https://") {
+        href = "/img/" + href;
+      }
+      var out = '<img src="' + href + '" alt="' + text + '"';
       if (spt.length >= 3) {
         out += ' width="' + parseInt(spt[0]) + '"';
         out += ' height="' + parseInt(spt[1]) + '"';
@@ -83,7 +86,7 @@ app.directive('markdownPreview', function() {
       return out;
     };
 
-    var opts = { renderer: renderer };
+    var opts = { renderer: renderer, sanitize: $location.path().substring(0, 6) != "/page/" };
 
     var update = _.throttle(function update(text) {
       var html = (typeof marked === 'function' && text) ? marked(text, opts) : '';

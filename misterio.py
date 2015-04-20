@@ -846,6 +846,7 @@ class AdminPage(webapp2.RequestHandler):
 			administrators = Administrator.query().fetch()
 			blob_q = blobstore.BlobInfo.all().run(batch_size=1000) # not a list!
 			blobs = [blob for blob in blob_q]
+			blobs.sort(key=lambda x: x.filename)
 
 			self.response.write(jt.render({"templates": templates, "sessions": sessions, "administrators": administrators, "blobs": blobs}))
 		elif rel == "upload_entry":

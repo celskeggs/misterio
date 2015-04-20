@@ -91,7 +91,6 @@ app.controller('Predefs', ['$scope', '$location', '$routeParams', 'User', '$root
   User.messages.predefs().then(function(data) {
     $scope.loading = false;
     $scope.messages = data.messages;
-    handle_messages(data);
   });
 }]);
 
