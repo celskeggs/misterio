@@ -256,6 +256,8 @@ class SelectPage(VerifyingHandler):
 					charids.add(assignment.cid)
 		charmap = dict((char.key, char) for char in ndb.get_multi(charids))
 		characters = [(charmap[key], session) for key, session in characters]
+		characters.sort(key=lambda x: x[0].name)
+		characters.sort(key=lambda x: x[1].name)
 
 		self.response.write(jt.render({"username": users.get_current_user().nickname(), "characters": characters, "admin": is_user_admin()}))
 class LogoffPage(webapp2.RequestHandler):
@@ -840,7 +842,7 @@ class AdminPage(webapp2.RequestHandler):
 			jt = JINJA_ENVIRONMENT.get_template('static_admin/root.html')
 
 			templates = Template.query().fetch()
-			sessions = Session.query().fetch()
+			sessions = sorted(Session.query().fetch(), key=lambda x: x.name)
 			administrators = Administrator.query().fetch()
 			blob_q = blobstore.BlobInfo.all().run(batch_size=1000) # not a list!
 			blobs = [blob for blob in blob_q]
