@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+{% autoescape true %}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Administration Page: Upload</title>
+  <link rel="stylesheet" href="/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a id="mystery-title" class="navbar-brand" href="/administration">Management Root</a>
+      </div>
+      <div class="collapse navbar-collapse" ng-controller="Navbar">
+        <ul class="nav navbar-nav navbar-right">
+          <li style="padding-right: 10px;"><button onclick="document.location='/';" class="btn btn-default navbar-btn">Volver al Juego</button></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  
+  <div class="container">
+    <div class="main-content">
+
+      <div>
+        <noscript>
+          <div class="alert alert-danger"><strong>JavaScript Disabled!</strong> This site uses JavaScript to provide an efficient and responsive interface, please enable JavaScript!</div>
+        </noscript>
+      </div>
+
+      <ol class="breadcrumb">
+        <li><a href="/administration">Root</a></li>
+        <li class="active">Upload Form</li>
+      </ol>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Upload Form</h3>
+        </div>
+        <div class="panel-body">
+          <div class="alert alert-info">Use this form to upload <strong>images</strong> that you want to use in your templates.</div>
+          <form class="form-horizontal" action="{{ upload_url }}" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+              <label for="name" class="col-sm-2 control-label">Image</label>
+              <div class="col-sm-10">
+                <input type="file" name="image">
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="col-sm-10 col-sm-offset-2">
+                <button class="form-control btn btn-primary" type="submit">Upload</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/lib/jquery/jquery.js"></script>
+  <script src="/lib/underscore/underscore.js"></script>
+  <script src="/lib/bootstrap/bootstrap.js"></script>
+</body>
+</html>
+{% endautoescape %}
