@@ -18,16 +18,6 @@ You will need to host your own deployment of the system. Luckily, you can do so 
  * Deploy this application to Google App Engine.
  * Log in to the application with your Google account and set up a game template!
 
-## Google App Engine free tier
-
-It is perfectly possible to run a deployment of this application at no cost.
-
-According to load tests, it should be able to support four groups of around 12-13 players within the Google App Engine free tier limits. You will, however, want to do your own load tests and use the paid tier if the free tier will not support your load.
-
-## Need help?
-
-You can file a bug report here on GitHub.
-
 # Screenshots
 
 ## Character selection
@@ -49,3 +39,15 @@ You can file a bug report here on GitHub.
 ## Managing the game
 
 ![Managing the game](screenshots/manage.png)
+
+# Additional information
+
+## Google App Engine free tier
+
+It is perfectly possible to run a deployment of this application at no cost.
+
+According to load tests, it should be able to support four groups of around 12-13 players within the Google App Engine free tier limits. You will, however, want to do your own load tests and use the paid tier if the free tier will not support your load.
+
+## Need help?
+
+You can file a bug report here on GitHub.
