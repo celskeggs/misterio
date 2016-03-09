@@ -434,7 +434,7 @@ class DynamicPage(VerifyingHandler):
 
 			pun_value = get_post_update_value(session.key)
 
-			mcid = "%s/%d/%s/%s/%s" % ("FED" if dynamic_id == "feed" else "IBX", session.key.id(), begin, cid, direction)
+			mcid = "%s/%d/%s/%s/%s" % ("FED" if dynamic_id == "feed" else "IBX/%s" % character.key.id(), session.key.id(), begin, cid, direction)
 			ptso = memcache.get(mcid)
 			pts = unwrap_for_update(ptso, pun_value)
 			if pts == None:
