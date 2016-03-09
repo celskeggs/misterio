@@ -834,6 +834,11 @@ class AdminPage(webapp2.RequestHandler):
 				session.put()
 				notify_update_session(key)
 				self.redirect("/administration/session?key=%s#characters" % key.urlsafe())
+		elif rel == "refresh_posts":
+			succ, key = self.get_reqs_key("Session")
+			if succ:
+				memcache.delete("ADM/%s" % key.id(), 1)
+				self.redirect("/administration/posts?key=%s" % key.urlsafe())
 		else:
 			self.abort(404)
 	def get(self, rel=""):
@@ -902,13 +907,18 @@ class AdminPage(webapp2.RequestHandler):
 				session = key.get()
 				if session == None:
 					return self.display_error("The session that you are trying to view either does not exist or has been deleted.")
-				limit = 10
-				posts = Post.query(ancestor=session.key).order(Post.date).fetch(limit)
-				charids = list(set(post.cid for post in posts).union(set(post.target for post in posts if post.target != None)))
-				chars = ndb.get_multi(charids)
-				avatarmap = dict((char.key, char.avatar) for char in chars)
-				namemap = dict((char.key, char.name) for char in chars)
-				self.response.write(jt.render({"session": session, "posts": posts, "limit": limit, "avatars": avatarmap, "names": namemap}))
+				mcid = "ADM/%s" % session.key.id()
+				cached = memcache.get(mcid)
+				if cached == None:
+					limit = 300
+					posts = Post.query(ancestor=session.key).order(Post.date).fetch(limit)
+					charids = list(set(post.cid for post in posts).union(set(post.target for post in posts if post.target != None)))
+					chars = ndb.get_multi(charids)
+					avatarmap = dict((char.key, char.avatar) for char in chars)
+					namemap = dict((char.key, char.name) for char in chars)
+					cached = jt.render({"session": session, "posts": posts, "limit": limit, "avatars": avatarmap, "names": namemap})
+					memcache.set(mcid, cached, time=1800) # five-minute lag
+				self.response.write(cached)
 		elif rel == "character":
 			jt = JINJA_ENVIRONMENT.get_template('static_admin/character.html')
 

@@ -64,6 +64,11 @@
               {% endif %}
             </tbody>
           </table>
+          <div class="alert alert-warning">This page only updates every thirty minutes. Click the Force Refresh button to update now. Be aware that this is an expensive operation, so be considerate about your usage.</div>
+          <form action="/administration/refresh_posts" method="post">
+            <input type="hidden" name="key" value="{{ session.key.urlsafe() }}" />
+            <button class="btn btn-warning" type="submit">Force Refresh</button>
+          </form>
         </div>
       </div>
 
